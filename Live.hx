@@ -56,6 +56,7 @@ class Live
 			haxe.Timer.delay(load, 500);
 		}
 		http.onError = function(data) {
+			trace('can\'t load "$url" file');
 			parse(http.responseData);
 			haxe.Timer.delay(load, 500);
 		}

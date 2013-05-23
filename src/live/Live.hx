@@ -1,8 +1,15 @@
+package live;
+
+#if macro
+import haxe.macro.Context;
+#end
+
 import hscript.Parser;
 import hscript.Interp;
 
-class Live
+@:build(live.Macro.buildLive()) class Live
 {
+	
 	var parser:Parser;
 	var interp:Interp;
 	var script:String;
@@ -11,14 +18,15 @@ class Live
 	static public var instance(default, null):Live = new Live();
 	
 	static function callField(d:Dynamic, n:String, args:Array<Dynamic>) {
-		Reflect.callMethod(d, Reflect.getProperty(d, n), args);
+		return Reflect.callMethod(d, Reflect.getProperty(d, n), args);
 	}
 	
 	function new()
 	{
 		parser = new Parser();
 		interp = new Interp();
-		methods = {};
+		methods = { };
+		listeners = [];
 
 		interp.variables.set("callField", Live.callField);
 		interp.variables.set("callMethod", Reflect.callMethod);
@@ -42,11 +50,11 @@ class Live
 			load();
 		}
 	}
+	
+	var url = "script.hs";
 
 	function load()
 	{
-		var url = "script.hs";
-		
 		#if (flash || js)
 		url += "?r="+Math.round(Math.random()*10000000);
 
@@ -64,7 +72,6 @@ class Live
 		#end
 
 		#if sys
-		url = "../../../../" + url;
 		var data = sys.io.File.getContent(url);
 		parse(data);
 		#end
@@ -85,7 +92,7 @@ class Live
 		
 		if (nmethods != null) {
 			var types:Array<String> = Reflect.field(nmethods, "__types__");
-			trace(types);
+			//trace(types);
 			var ok = true;
 			if (types != null) {
 				var i = 0;
@@ -99,13 +106,23 @@ class Live
 					
 					if (ref == null) {
 						ok = false;
-						trace("can't use type:'" + cn + "'");
+						trace("can't find type: '" + cn + "'");
 					}
 					else interp.variables.set(n, ref);
 				}
 			}
-			if (ok) methods = nmethods;
+			if (ok) {
+				methods = nmethods;
+				for (l in listeners) l();
+			}
 		}
+	}
+	
+	var listeners:Array<Dynamic>;
+	
+	public function addListener(f:Dynamic) {
+		listeners.remove(f);
+		listeners.push(f);
 	}
 
 	public function call(instance:Dynamic, method:String, args:Array<Dynamic>)

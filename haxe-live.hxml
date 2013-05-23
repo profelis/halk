@@ -1,0 +1,17 @@
+-cp bin/flash/haxe
+-cp src
+-cp C:/Motion-Twin/Haxe/lib/hscript/2,0
+-lib hscript
+-swf bin/haxelive.swf
+-swf-header 800:600:30:FFFFFF
+--flash-strict
+-swf-version 9
+-D HXCPP_DEBUG_LINK
+-D DHXCPP_STACK_TRACE
+-D HXCPP_STACK_LINE
+-D HXCPP_CHECK_POINTER
+-D HXCPP_DEBUGGER
+-D nme_install_tool
+-D web
+-main Main
+-dce no

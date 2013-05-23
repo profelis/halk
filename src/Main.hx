@@ -1,8 +1,8 @@
 import flash.display.Sprite;
 import haxe.Log;
+import live.ILive;
 
-@:build(Macro.build())
-class Main
+class Main implements ILive
 {
 	static function main() new Main();
 
@@ -17,29 +17,40 @@ class Main
 		flash.Lib.current.addChild(sprite);
 
 		sprite.addEventListener(flash.events.Event.ENTER_FRAME, update);
+		
+		new A();
 	}
 	
 	var color = 0xFF0000;
+	
+	@live function d() {
+		color = 0x00FFFF;
+	}
 
 	@liveUpdate function draw()
 	{
-		color = 0xFF00FF;
+		trace("draw");
+		d();
+		var t = 10 * 10;
+		var s = sprite;
+		this.sprite.graphics.clear();
+		s.graphics.beginFill(color);
+		s.graphics.drawRect(0, 0, t, t);
 	}
 	
 	@live function update(_)
 	{
-		var t = 10 * 10;
-		var s = sprite;
-		sprite.graphics.clear();
-		s.graphics.beginFill(0x000000);
-		s.graphics.drawRect(0, 0, t, t);
 		
+		
+		var t = 10 * 10;
 		//Log.clear();
 		//trace("1");
-		//Utf8.decode("123");
-		
+		var s = sprite;
 		s.x += 5;
-		if (s.x > 400) s.x = -t;
+		s.y += 3;
+		if (s.x > sprite.stage.stageWidth) s.x = -t;
+		if (s.y > sprite.stage.stageHeight) s.y = -t;
+		
 		
 		//callMethod(this, this.draw, [0xFF]);
 		//this.sprite.x = this.sprite.x - 1;

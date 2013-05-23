@@ -12,5 +12,5 @@
 	
 	<haxelib name="nme" />
 	<haxelib name="hscript" />
-	<assets path="asset" rename="assets" />
+	
 </project>

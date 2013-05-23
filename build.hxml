@@ -1,4 +1,5 @@
 -swf main.swf
 -main Main
 -lib hscript
+-dce no
 --no-output

@@ -7,17 +7,23 @@ class Live
 	var interp:Interp;
 	var script:String;
 	var methods:Dynamic;
-
-	public function new()
+	
+	static public var instance(default, null):Live = new Live();
+	
+	static function callField(d:Dynamic, n:String, args:Array<Dynamic>) {
+		Reflect.callMethod(d, Reflect.getProperty(d, n), args);
+	}
+	
+	function new()
 	{
 		parser = new Parser();
 		interp = new Interp();
 		methods = {};
 
-		interp.variables.set("trace", function(m){ trace(m); });
+		interp.variables.set("callField", Live.callField);
+		interp.variables.set("callMethod", Reflect.callMethod);
 		interp.variables.set("getProperty", Reflect.getProperty);
 		interp.variables.set("setProperty", Reflect.setProperty);
-		interp.variables.set("callMethod", Reflect.callMethod);
 
 		load();
 
@@ -25,7 +31,7 @@ class Live
 		flash.Lib.current.addEventListener(flash.events.Event.ENTER_FRAME, update);
 		#end
 	}
-
+	
 	var counter = 0;
 	function update(_)
 	{
@@ -39,7 +45,7 @@ class Live
 
 	function load()
 	{
-		var url = "../../script.hs";
+		var url = "script.hs";
 		
 		#if (flash || js)
 		url += "?r="+Math.round(Math.random()*10000000);
@@ -68,14 +74,43 @@ class Live
 		if (data == script) return;
 		script = data;
 		// trace("parse: " + data);
-
-		var program = parser.parseString(script);
-		methods = interp.execute(program);
+		
+		var nmethods = null;
+		try {
+			var program = parser.parseString(script);
+			nmethods = interp.execute(program);
+		}
+		catch (e:Dynamic) { }
+		
+		if (nmethods != null) {
+			var types:Array<String> = Reflect.field(nmethods, "__types__");
+			trace(types);
+			var ok = true;
+			if (types != null) {
+				var i = 0;
+				while (i < types.length) {
+					var n = types[i++];
+					var cn = types[i++];
+					var ref = null;
+					try {
+						ref = Type.resolveClass(cn);
+					} catch (e:Dynamic) { }
+					
+					if (ref == null) {
+						ok = false;
+						trace("can't use type:'" + cn + "'");
+					}
+					else interp.variables.set(n, ref);
+				}
+			}
+			if (ok) methods = nmethods;
+		}
 	}
 
 	public function call(instance:Dynamic, method:String, args:Array<Dynamic>)
 	{
 		if (Reflect.field(methods, method) == null) return;
+		
 		interp.variables.set("this", instance);
 		Reflect.callMethod(instance, Reflect.field(methods, method), args);
 	}

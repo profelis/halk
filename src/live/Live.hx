@@ -1,3 +1,5 @@
+package live;
+
 import hscript.Parser;
 import hscript.Interp;
 
@@ -18,7 +20,8 @@ class Live
 	{
 		parser = new Parser();
 		interp = new Interp();
-		methods = {};
+		methods = { };
+		listeners = [];
 
 		interp.variables.set("callField", Live.callField);
 		interp.variables.set("callMethod", Reflect.callMethod);
@@ -84,7 +87,7 @@ class Live
 		
 		if (nmethods != null) {
 			var types:Array<String> = Reflect.field(nmethods, "__types__");
-			trace(types);
+			//trace(types);
 			var ok = true;
 			if (types != null) {
 				var i = 0;
@@ -98,13 +101,23 @@ class Live
 					
 					if (ref == null) {
 						ok = false;
-						trace("can't use type:'" + cn + "'");
+						trace("can't use type: '" + cn + "'");
 					}
 					else interp.variables.set(n, ref);
 				}
 			}
-			if (ok) methods = nmethods;
+			if (ok) {
+				methods = nmethods;
+				for (l in listeners) l();
+			}
 		}
+	}
+	
+	var listeners:Array<Dynamic>;
+	
+	public function addListener(f:Dynamic) {
+		listeners.remove(f);
+		listeners.push(f);
 	}
 
 	public function call(instance:Dynamic, method:String, args:Array<Dynamic>)

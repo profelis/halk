@@ -24,7 +24,7 @@ class Main implements ILive
 	var color = 0xFF0000;
 	
 	@live function d() {
-		color = 0x00FF00;
+		color = 0x00FFFF;
 	}
 
 	@liveUpdate function draw()

@@ -1,5 +1,5 @@
 {Main_Main_d:function(){
-	setProperty(this,"color",0x00FF00);
+	setProperty(this,"color",0x00FFFF);
 },
 Main_Main_draw:function(){
 	trace("draw");

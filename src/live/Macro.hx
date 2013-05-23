@@ -290,7 +290,7 @@ class Macro
 		}
 	}
 	
-	static function getSetter(expr:Expr, value:Expr):Expr
+	inline static function getSetter(expr:Expr, value:Expr):Expr
 	{
 		return switch (expr.expr)
 		{

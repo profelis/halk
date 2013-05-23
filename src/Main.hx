@@ -31,27 +31,25 @@ class Main implements ILive
 	{
 		trace("draw");
 		d();
-		
-		var a = new A();
-		a.test();
-		//a.test();
-		//trace(Type.getClassFields(A));
-	}
-	
-	@live function update(_)
-	{
-		var t = 10 * 15;
+		var t = 10 * 10;
 		var s = sprite;
 		this.sprite.graphics.clear();
 		s.graphics.beginFill(color);
 		s.graphics.drawRect(0, 0, t, t);
+	}
+	
+	@live function update(_)
+	{
 		
+		
+		var t = 10 * 10;
 		//Log.clear();
 		//trace("1");
-		//Utf8.decode("123");
-		
-		s.x += 2;
-		//if (s.x > stage.stageWidth) s.x = -t;
+		var s = sprite;
+		s.x += 5;
+		s.y += 3;
+		if (s.x > sprite.stage.stageWidth) s.x = -t;
+		if (s.y > sprite.stage.stageHeight) s.y = -t;
 		
 		
 		//callMethod(this, this.draw, [0xFF]);

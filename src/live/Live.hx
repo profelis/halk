@@ -105,7 +105,7 @@ import hscript.Interp;
 					
 					if (ref == null) {
 						ok = false;
-						trace("can't use type: '" + cn + "'");
+						trace("can't find type: '" + cn + "'");
 					}
 					else interp.variables.set(n, ref);
 				}

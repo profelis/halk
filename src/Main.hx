@@ -17,6 +17,8 @@ class Main implements ILive
 		flash.Lib.current.addChild(sprite);
 
 		sprite.addEventListener(flash.events.Event.ENTER_FRAME, update);
+		
+		new A();
 	}
 	
 	var color = 0xFF0000;
@@ -29,6 +31,11 @@ class Main implements ILive
 	{
 		trace("draw");
 		d();
+		
+		var a = new A();
+		a.test();
+		//a.test();
+		//trace(Type.getClassFields(A));
 	}
 	
 	@live function update(_)
@@ -44,7 +51,7 @@ class Main implements ILive
 		//Utf8.decode("123");
 		
 		s.x += 2;
-		if (s.x > 400) s.x = -t;
+		//if (s.x > stage.stageWidth) s.x = -t;
 		
 		
 		//callMethod(this, this.draw, [0xFF]);

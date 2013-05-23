@@ -5,7 +5,7 @@
 -swf bin/haxelive.swf
 -swf-header 800:600:30:FFFFFF
 --flash-strict
--swf-version 11
+-swf-version 9
 -D HXCPP_DEBUG_LINK
 -D DHXCPP_STACK_TRACE
 -D HXCPP_STACK_LINE
@@ -14,4 +14,4 @@
 -D nme_install_tool
 -D web
 -main Main
--swf-version 11
+-dce no

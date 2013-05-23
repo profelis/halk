@@ -4,6 +4,8 @@
 Main_Main_draw:function(){
 	trace("draw");
 	callField(this,"d",[]);
+	var a=new A();
+	callField(a,"test",[]);
 },
 Main_Main_update:function(_){
 	var t=10*15;
@@ -12,5 +14,5 @@ Main_Main_update:function(_){
 	callField(getProperty(s,"graphics"),"beginFill",[getProperty(this,"color")]);
 	callField(getProperty(s,"graphics"),"drawRect",[0,0,t,t]);
 	setProperty(s,"x",getProperty(s,"x")+2);
-	if(getProperty(s,"x")>400) setProperty(s,"x",-t) ;
-}}
+},
+__types__:["A", "A"]}

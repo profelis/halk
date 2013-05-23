@@ -1,10 +1,15 @@
 package live;
 
+#if macro
+import haxe.macro.Context;
+#end
+
 import hscript.Parser;
 import hscript.Interp;
 
-class Live
+@:build(live.Macro.buildLive()) class Live
 {
+	
 	var parser:Parser;
 	var interp:Interp;
 	var script:String;
@@ -13,7 +18,7 @@ class Live
 	static public var instance(default, null):Live = new Live();
 	
 	static function callField(d:Dynamic, n:String, args:Array<Dynamic>) {
-		Reflect.callMethod(d, Reflect.getProperty(d, n), args);
+		return Reflect.callMethod(d, Reflect.getProperty(d, n), args);
 	}
 	
 	function new()
@@ -45,11 +50,11 @@ class Live
 			load();
 		}
 	}
+	
+	var url = "script.hs";
 
 	function load()
 	{
-		var url = "script.hs";
-		
 		#if (flash || js)
 		url += "?r="+Math.round(Math.random()*10000000);
 
@@ -66,7 +71,6 @@ class Live
 		#end
 
 		#if sys
-		url = "../../../../" + url;
 		var data = sys.io.File.getContent(url);
 		parse(data);
 		#end

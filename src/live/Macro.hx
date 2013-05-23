@@ -1,11 +1,16 @@
 package live;
 
+import haxe.io.Path;
+import haxe.macro.Compiler;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import sys.FileSystem;
 
 using haxe.macro.Tools;
 using Lambda;
+
+
 
 class Macro
 {
@@ -17,9 +22,28 @@ class Macro
 	
 	static var inited:Null<Bool> = null;
 	
-	static function registerType(n, m) {
+	inline static function registerType(n, m) {
 		//trace("register: " + n + " " + m);
 		varTypes[n] = m;
+	}
+	
+	// один и тотже путь для скрипта в Live и тут, чтобы не думать куда его ложить
+	static function getOutPath() {
+		var path = Compiler.getOutput();
+		var p = new Path(path);
+		if (FileSystem.isDirectory(p.dir)) return p.dir + "/script.hs";
+		
+		p = new Path(p.dir);
+		return p.dir + "/script.hs";
+	}
+	
+	// удалим старую вару url и сделаем новую, с нашим путем
+	public static function buildLive() {
+		var res = Context.getBuildFields();
+		for (f in res) if (f.name == "url") { res.remove(f); break; }
+		
+		res.push( { kind:FVar(null, macro $v{getOutPath()}), name:"url", pos:Context.currentPos() }  );
+		return res;
 	}
 	
 	public static function build()
@@ -57,7 +81,7 @@ class Macro
 						var args = f.args.map(function(a){ return a.name; }).join(",");
 						var expr = f.expr.map(processExpr);
 						var body = expr.toString();
-						trace(body);
+						//trace(body);
 						
 						methods.push('$name:function($args)$body');
 						var args = f.args.map(function (a) return macro $v{a.value});
@@ -103,6 +127,7 @@ class Macro
 		return fields;
 	}
 	
+	// раз за компиляцию создадим фаил со всем скриптами из всех классов
 	static function init(_) {
 		//trace("init");
 		
@@ -115,7 +140,7 @@ class Macro
 		var script = "{" + methods.join(",\n");
 		if (types.length > 0) script += ",\n__types__:[\"" + types.join("\", \"") + "\"]";
 		script += "}";
-		sys.io.File.saveContent("bin/script.hs", script);
+		sys.io.File.saveContent(getOutPath(), script);
 		
 		if (types.length > 0) varTypes = new Map();
 		methods = [];
@@ -142,7 +167,7 @@ class Macro
 				}
 				else expr.map(processExpr);
 				
-			case ECall( { expr:EField(e, field) }, params): 
+			case ECall( { expr:EField(e, field) }, params): // если вызов haxe.Log.clear() то надо зарегистрировать тип haxe.Log
 				
 				params = params.map(function (p) return processExpr(p));
 				
@@ -179,7 +204,21 @@ class Macro
 				e = processExpr(e);
 				macro callField($e, $v { field }, $a { params } );
 				
-			case EConst(CIdent(n)):
+			case EConst(CIdent(n)):  // если идентификатор принадлежит классу, то добавим this
+				
+				var t = null;
+				try {
+					t = Context.getType(n);
+				} catch (e:Dynamic) {}
+				if (t != null)
+					switch (t) {
+						case TInst(t, _):
+							var t = t.get();
+							registerType(t.name, t.module);
+							
+						case _:
+							throw "Unknown: " + t;
+					}
 				
 				if (classFields.has(n))
 					macro getProperty(this, $v{n});
@@ -189,7 +228,7 @@ class Macro
 				
 				getSetter(processExpr(e1), processExpr(e2));
 				
-			case ENew(t, params):
+			case ENew(t, params):  // в конструкторах тоже найдем тип для регистрации
 				
 				params = params.map(function (p) return processExpr(p));
 				var res = { expr:ENew(t, params), pos:expr.pos };

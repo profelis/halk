@@ -28,6 +28,7 @@ class Macro
 	}
 	
 	// один и тотже путь для скрипта в Live и тут, чтобы не думать куда его ложить
+	// TODO: nme, mac need test
 	static function getOutPath() {
 		var path = Compiler.getOutput();
 		var p = new Path(path);
@@ -119,6 +120,7 @@ class Macro
 		}
 		
 		if (ctor == null && liveListeners.length > 0) { // если нет конструктора, сделаем его
+			// TODO: test
 			ctor = { name:"new", pos:Context.currentPos(), access:[APublic],
 				kind:FFun( { args:[], ret:null, expr:null, params:[] } ) };
 				
@@ -197,7 +199,7 @@ class Macro
 							registerType(n, t.module);
 						
 						case _:
-							throw "assert";
+							throw "unknown: " + t;
 					}
 				}
 				
@@ -241,7 +243,6 @@ class Macro
 						
 					case _:
 						throw "Unknown: " + t;
-						// TODO:
 						res;
 				}
 				res;

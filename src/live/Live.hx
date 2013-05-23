@@ -55,7 +55,12 @@ import hscript.Interp;
 
 	function load()
 	{
-		#if (flash || js)
+		#if sys
+		var data = sys.io.File.getContent(url);
+		parse(data);
+		
+		#else
+		
 		url += "?r="+Math.round(Math.random()*10000000);
 
 		var http = new haxe.Http(url);
@@ -65,15 +70,11 @@ import hscript.Interp;
 		}
 		http.onError = function(data) {
 			trace('can\'t load "$url" file');
-			parse(http.responseData);
+			//parse(http.responseData);
 			haxe.Timer.delay(load, 500);
 		}
 		http.request();
-		#end
-
-		#if sys
-		var data = sys.io.File.getContent(url);
-		parse(data);
+		
 		#end
 	}
 

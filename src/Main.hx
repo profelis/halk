@@ -2,6 +2,14 @@ import flash.display.Sprite;
 import haxe.Log;
 import live.ILive;
 
+/**
+ * Haxe 3 requered
+ * 
+ * Что не работает:
+ *  - енумы можно объявлять только с именем класса EnumName.EnumCtor (так и будет скорее всего)
+ *  - не поддерживаются поля из родительских классов (планирую сделать)
+ * 
+ */
 class Main implements ILive
 {
 	static function main() new Main();
@@ -24,7 +32,7 @@ class Main implements ILive
 	var color = 0xFF0000;
 	
 	@live function d() {
-		color = 0x00FFFF;
+		color = 0x00FF00;
 	}
 
 	@liveUpdate function draw()

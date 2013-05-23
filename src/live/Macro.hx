@@ -148,7 +148,7 @@ class Macro
 	
 	static function processExpr(expr:Expr):Expr
 	{
-		//trace(expr);
+		trace(expr);
 		//trace(expr.toString());
 		return switch (expr.expr)
 		{

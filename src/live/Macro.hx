@@ -148,7 +148,7 @@ class Macro
 
 	static function processExpr(expr:Expr):Expr
 	{
-		//trace(expr);
+		trace(expr);
 		//trace(expr.toString());
 		return switch (expr.expr)
 		{
@@ -209,7 +209,7 @@ class Macro
 				var t = null;
 				try {
 					t = Context.getType(n);
-				} catch (e:Dynamic) {}
+				} catch (e:Dynamic) { }
 				if (t != null)
 					switch (t) {
 						case TInst(t, _):

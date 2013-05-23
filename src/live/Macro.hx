@@ -37,6 +37,25 @@ class Macro
 		return p.dir + "/script.hs";
 	}
 	
+	// раз за компиляцию создадим фаил со всем скриптами из всех классов
+	static function init(_) {
+		//trace("init");
+		
+		var types = [];
+		for (n in varTypes.keys()) {
+			types.push(n);
+			types.push(varTypes[n]);
+		}
+		
+		var script = "{" + methods.join(",\n");
+		if (types.length > 0) script += ",\n__types__:[\"" + types.join("\", \"") + "\"]";
+		script += "}";
+		sys.io.File.saveContent(getOutPath(), script);
+		
+		if (types.length > 0) varTypes = new Map();
+		methods = [];
+	}
+	
 	// удалим старую вару url и сделаем новую, с нашим путем
 	public static function buildLive() {
 		var res = Context.getBuildFields();
@@ -127,28 +146,9 @@ class Macro
 		return fields;
 	}
 	
-	// раз за компиляцию создадим фаил со всем скриптами из всех классов
-	static function init(_) {
-		//trace("init");
-		
-		var types = [];
-		for (n in varTypes.keys()) {
-			types.push(n);
-			types.push(varTypes[n]);
-		}
-		
-		var script = "{" + methods.join(",\n");
-		if (types.length > 0) script += ",\n__types__:[\"" + types.join("\", \"") + "\"]";
-		script += "}";
-		sys.io.File.saveContent(getOutPath(), script);
-		
-		if (types.length > 0) varTypes = new Map();
-		methods = [];
-	}
-
 	static function processExpr(expr:Expr):Expr
 	{
-		trace(expr);
+		//trace(expr);
 		//trace(expr.toString());
 		return switch (expr.expr)
 		{

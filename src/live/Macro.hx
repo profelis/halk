@@ -27,6 +27,7 @@ class Macro
 	
 	static var typeDesc:TypeDesc;
 	static var typeCall:Expr;
+	static var localVars:Array<String>;
 	
 	static var varTypes:Map < String, Bool > = new Map();
 	
@@ -125,10 +126,13 @@ class Macro
 			
 			for (m in methods[tn]) {
 				//trace(m.name);
+				localVars = [];
 				var body = m.method.map(processExpr).toString();
 				res.push('${m.name}:function(${m.args})$body');
 			}
 		}
+		
+		localVars = null;
 		
 		var script = "{" + res.join(",\n");
 		if (varTypes.keys().hasNext()) 
@@ -270,13 +274,14 @@ class Macro
 						case _:
 					}
 				}
-				t = [for (e in t) processExpr(e)];
+				t = [for (e in t) processExpr(e) ];
 				macro $a { t };
 			
 			case EVars(vars):
 				
 				if (vars.length > 1) Context.error("Live doesn't support multiple vars on one line", expr.pos);
 				for (v in vars) {
+					localVars.push(v.name);
 					if (v.type != null) {
 						switch (v.type) {
 							
@@ -286,7 +291,7 @@ class Macro
 							case _:
 						}
 					}
-					v.expr = processExpr(v.expr);
+					v.expr = v.expr != null ? processExpr(v.expr) : v.expr;
 					v.type = null;
 				}
 				expr;
@@ -352,7 +357,8 @@ class Macro
 				var path = null;
 				if (t != null) path = registerMacroType(t, expr.pos);
 				
-				if (typeDesc.svars.has(n))
+				if (localVars.has(n)) res;
+				else if (typeDesc.svars.has(n))
 					macro getProperty($typeCall, $v { n } );
 				else if (typeDesc.vars.has(n))
 					macro getProperty(this, $v{n});
@@ -434,6 +440,7 @@ class Macro
 				registerType(t.name, t.pack);
 				//macro $i { n };
 			case TAnonymous(_):
+			case TAbstract(_):
 				
 			case TEnum(t, _):
 				

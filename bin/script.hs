@@ -6,6 +6,10 @@
 	callField(gfx,"beginFill",[0xFF0000]);
 	callField(gfx,"drawRect",[0,0,t,t]);
 },
+Main_Main_ttt:function(){
+	var x=10;
+	trace(x);
+},
 Main_Main_update:function(_){
 	var t=10*15;
 	var s=getProperty(this,"sprite");

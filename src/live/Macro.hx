@@ -270,7 +270,8 @@ class Macro
 						case _:
 					}
 				}
-				expr;
+				t = [for (e in t) processExpr(e)];
+				macro $a { t };
 			
 			case EVars(vars):
 				

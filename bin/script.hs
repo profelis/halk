@@ -13,6 +13,7 @@ Main_Main_update:function(_){
 	setProperty(s,"y",getProperty(s,"y")+4);
 	if(getProperty(s,"x")>getProperty(getProperty(getProperty(this,"sprite"),"stage"),"stageWidth")) setProperty(s,"x",-t) ;
 	if(getProperty(s,"y")>getProperty(getProperty(getProperty(this,"sprite"),"stage"),"stageHeight")) setProperty(s,"y",-t) ;
+	[getProperty(this,"sprite")];
 },
 ___types___:["Brick", "Main"]
 }

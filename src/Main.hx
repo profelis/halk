@@ -48,6 +48,8 @@ class Main extends Sprite implements ILive
 		if (s.x > sprite.stage.stageWidth) s.x = -t;
 		if (s.y > sprite.stage.stageHeight) s.y = -t;
 		
+		[sprite];
+		
 		//Log.clear();
 		//callMethod(this, this.draw, [0xFF]);
 		//this.sprite.x = this.sprite.x - 1;

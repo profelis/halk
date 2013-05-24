@@ -40,7 +40,10 @@ class Macro
 	
 	// раз за компиляцию создадим фаил со всем скриптами из всех классов
 	static function init(_) {
-		//trace("init");
+		
+		//trace("inited: " + methods.length + " inited: " + inited);
+		if (inited) return;
+		inited = true;
 		
 		var types = [];
 		for (n in varTypes.keys()) {
@@ -53,8 +56,8 @@ class Macro
 		script += "}";
 		sys.io.File.saveContent(getOutPath(), script);
 		
-		if (types.length > 0) varTypes = new Map();
-		methods = [];
+		//if (types.length > 0) varTypes = new Map();
+		//methods = [];
 	}
 	
 	// удалим старую вару url и сделаем новую, с нашим путем
@@ -66,9 +69,19 @@ class Macro
 		return res;
 	}
 	
+	static var firstBuild = true;
+	
 	public static function build()
 	{
+		//trace("build");
 		Context.onGenerate(init);
+		if( firstBuild ) {
+			firstBuild = false;
+			Context.onMacroContextReused(function() {
+				inited = false;
+				return true;
+			});
+		}
 		var fields = Context.getBuildFields();
 		
 		classFields = [];
@@ -83,6 +96,7 @@ class Macro
 		classMethods.remove("new");
 		
 		var type = Context.getLocalClass().get();
+		//trace(type);
 		var prefix = type.module.split(".").join("_") + "_" + type.name + "_";
 
 		

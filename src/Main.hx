@@ -14,14 +14,14 @@ class Main implements ILive
 {
 	static function main() new Main();
 
-	public var sprite:flash.display.Sprite;
+	public var sprite:Brick;
 
 	function new()
 	{
 		flash.Lib.current.stage.frameRate = 60;
 		flash.Lib.current.stage.scaleMode = flash.display.StageScaleMode.NO_SCALE;
 
-		sprite = new flash.display.Sprite();
+		sprite = new Brick();
 		flash.Lib.current.addChild(sprite);
 
 		sprite.addEventListener(flash.events.Event.ENTER_FRAME, update);
@@ -29,33 +29,14 @@ class Main implements ILive
 		new A();
 	}
 	
-	var color = 0xFF0000;
-	
-	@live function d() {
-		color = 0x00FF00;
-	}
-
-	@liveUpdate function draw()
-	{
-		trace("draw");
-		d();
-		var t = 10 * 10;
-		var s = sprite;
-		this.sprite.graphics.clear();
-		s.graphics.beginFill(color);
-		s.graphics.drawRect(0, 0, t, t);
-	}
-	
 	@live function update(_)
 	{
-		
-		
 		var t = 10 * 10;
 		//Log.clear();
 		//trace("1");
-		var s = sprite;
-		s.x += 5;
-		s.y += 3;
+		var s = this.sprite;
+		s.x += 3;
+		s.y += 6;
 		if (s.x > sprite.stage.stageWidth) s.x = -t;
 		if (s.y > sprite.stage.stageHeight) s.y = -t;
 		
@@ -63,5 +44,19 @@ class Main implements ILive
 		//callMethod(this, this.draw, [0xFF]);
 		//this.sprite.x = this.sprite.x - 1;
 		//if (this.sprite.x < 0) this.sprite.x = 400;
+	}
+}
+
+class Brick extends Sprite implements ILive {
+	public function new() {
+		super();
+	}
+	
+	@liveUpdate public function draw() {
+		var t = 10 * 10;
+		var gfx = this.graphics;
+		gfx.clear();
+		gfx.beginFill(0xFF0000);
+		gfx.drawRect(0, 0, t, t);
 	}
 }

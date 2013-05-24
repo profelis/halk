@@ -258,7 +258,7 @@ class Macro
 	
 	static function processExpr(expr:Expr):Expr
 	{
-		trace(expr);
+		//trace(expr);
 		//trace(expr.toString());
 		//trace(expr.toString());
 		return switch (expr.expr)
@@ -283,7 +283,7 @@ class Macro
 				macro $a { t };
 			
 			case ECast(e, t):
-				e;
+				processExpr(e);
 				
 			case EVars(vars):
 				

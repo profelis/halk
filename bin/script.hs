@@ -1,6 +1,8 @@
-{Main_Main_update:function(_){
-	var s=this;
-	trace(getProperty(s,"dispatchEvent"));
+{Main_Main_ttt:function(){
+	{
+		var x=10;
+		trace(x);
+	};
 },
 ___types___:["Brick", "Main"]
 }

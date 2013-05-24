@@ -27,7 +27,6 @@ class Macro
 	
 	static var typeDesc:TypeDesc;
 	static var typeCall:Expr;
-	static var localVars:Array<String>;
 	
 	static var varTypes:Map < String, Bool > = new Map();
 	
@@ -126,13 +125,10 @@ class Macro
 			
 			for (m in methods[tn]) {
 				//trace(m.name);
-				localVars = [];
-				var body = m.method.map(processExpr).toString();
+				var body = process(m.method, []).toString();
 				res.push('${m.name}:function(${m.args})$body');
 			}
 		}
-		
-		localVars = null;
 		
 		var script = "{" + res.join(",\n");
 		if (varTypes.keys().hasNext()) 
@@ -256,182 +252,192 @@ class Macro
 		return fields;
 	}
 	
-	static function processExpr(expr:Expr):Expr
+	static function process(expr:Expr, vars:Array<String>):Expr
 	{
+		
+		var localVars:Array<String> = vars;
 		//trace(expr);
 		//trace(expr.toString());
 		//trace(expr.toString());
-		return switch (expr.expr)
+		function getSetter(expr:Expr, value:Expr):Expr
 		{
-			case ESwitch(_, _, _), EFunction(_, _):
-				var s = expr.toString();
-				var a = s.split("\n");
-				if (a.length > 1) s = a[0] + "...";
-				else if (s.length > 20) s = s.substr(0, 20) + "...";
-				
-				Context.error("Live doesn't support: " + s, expr.pos);
-			
-			case  EArrayDecl(t):
-				if (t.length > 0) {
-					switch (t[0].expr) {
-						case EFor(_, _), EWhile(_, _, _):
-							Context.error("Live doesn't support Array comprehensions", expr.pos);
-						case _:
+			return switch (expr.expr)
+			{
+				case ECall(e, params):
+					switch (e.expr) {
+						case EConst(CIdent("getProperty")):
+							var p1 = params[0];
+							var p2 = params[1];
+							macro setProperty($p1, $p2, $value);
+						case _ : macro $expr = $value;
 					}
-				}
-				t = [for (e in t) processExpr(e) ];
-				macro $a { t };
-			
-			case ECast(e, t):
-				processExpr(e);
+				case EField(e, field):
+					macro setProperty($e, $v{field}, $value);
+				case _:
+					macro $expr = $value;
+					//expr.map(processExpr);
+			}
+		}
+		
+		function processExpr(expr:Expr) {
+			return switch (expr.expr)
+			{
+				case EBlock(exprs):
+					var vars = localVars.copy();
+					return {expr:EBlock([for (e in exprs) process(e, vars)]), pos:expr.pos};
 				
-			case EVars(vars):
+				case ESwitch(_, _, _), EFunction(_, _):
+					var s = expr.toString();
+					var a = s.split("\n");
+					if (a.length > 1) s = a[0] + "...";
+					else if (s.length > 20) s = s.substr(0, 20) + "...";
+					
+					Context.error("Live doesn't support: " + s, expr.pos);
 				
-				if (vars.length > 1) Context.error("Live doesn't support multiple vars on one line", expr.pos);
-				for (v in vars) {
-					localVars.push(v.name);
-					if (v.type != null) {
-						switch (v.type) {
-							
-							case TPath(p):
-								var t = Context.getType((p.pack.length > 0 ? p.pack + "." : "") + p.name);
-								registerMacroType(t, expr.pos);
+				case  EArrayDecl(t):
+					if (t.length > 0) {
+						switch (t[0].expr) {
+							case EFor(_, _), EWhile(_, _, _):
+								Context.error("Live doesn't support Array comprehensions", expr.pos);
 							case _:
 						}
 					}
-					v.expr = v.expr != null ? processExpr(v.expr) : v.expr;
-					v.type = null;
-				}
-				expr;
+					t = [for (e in t) processExpr(e) ];
+					macro $a { t };
 				
-				
-			case EBinop(OpAssignOp(op), e1, e2):  // разворачиваем a+=1 в a=a+1
-				e1 = processExpr(e1);
-				e2 = processExpr(e2);
-				
-				var op = { expr:EBinop(op, e1, e2), pos:expr.pos };
-				processExpr(macro $e1 = $op);
-				
-			case ECall( { expr:EConst(CIdent(name)) }, params): // если идентификатор класса, то добавляем this
-				
-				if (name == "$type") processExpr(params[0]);
-				else {
-					if (typeDesc.smethods.has(name)) {
-						params = [for (p in params) processExpr(p)];
-						macro callField($typeCall, $v { name }, $a { params }  );
-					} else if (typeDesc.methods.has(name)) {
-						params = [for (p in params) processExpr(p)];
-						macro callField(this, $v{name}, $a { params } );
+				case ECast(e, t):
+					processExpr(e);
+					
+				case EVars(vars):
+					
+					if (vars.length > 1) Context.error("Live doesn't support multiple vars on one line", expr.pos);
+					for (v in vars) {
+						localVars.push(v.name);
+						if (v.type != null) {
+							switch (v.type) {
+								
+								case TPath(p):
+									var t = Context.getType((p.pack.length > 0 ? p.pack + "." : "") + p.name);
+									registerMacroType(t, expr.pos);
+								case _:
+							}
+						}
+						v.expr = v.expr != null ? processExpr(v.expr) : v.expr;
+						v.type = null;
 					}
-					else expr.map(processExpr);
-				}
-				
-			case ECall( { expr:EField(e, field) }, params): // если вызов haxe.Log.clear() то надо зарегистрировать тип haxe.Log
-				
-				
-				params = [for (p in params) processExpr(p)];
-				
-				var t = null;
-				try {
-					t = Context.typeof(e);
-				} catch (e:Dynamic) { }
-				if (t == null) {
-					try {
-						var s = e.toString();
-						if (s.length > 0) s += ".";
-						t = Context.getType(s + field);
-					} catch (e:Dynamic) {}
-				}
-				e = processExpr(e);
-				
-				if (t != null) {
-					var path = registerMacroType(t, expr.pos);
-					if (path != null) e = path.split(".").toFieldExpr();
-				}
-				
-				macro callField($e, $v { field }, $a { params } );
-				
-			case EConst(CIdent(n)):  // если идентификатор принадлежит классу, то добавим this
-				
-				var res = expr;
-				var t = null;
-				try {
-					t = Context.getType(n);
-				} catch (e:Dynamic) { }
-				if (t == null) {
-					try {
-						t = Context.typeof(expr);
+					expr;
+					
+					
+				case EBinop(OpAssignOp(op), e1, e2):  // разворачиваем a+=1 в a=a+1
+					e1 = processExpr(e1);
+					e2 = processExpr(e2);
+					
+					var op = { expr:EBinop(op, e1, e2), pos:expr.pos };
+					processExpr(macro $e1 = $op);
+					
+				case ECall( { expr:EConst(CIdent(name)) }, params): // если идентификатор класса, то добавляем this
+					
+					if (name == "$type") processExpr(params[0]);
+					else {
+						if (typeDesc.smethods.has(name)) {
+							params = [for (p in params) processExpr(p)];
+							macro callField($typeCall, $v { name }, $a { params }  );
+						} else if (typeDesc.methods.has(name)) {
+							params = [for (p in params) processExpr(p)];
+							macro callField(this, $v{name}, $a { params } );
+						}
+						else expr.map(processExpr);
 					}
-					catch (e:Dynamic) { }
-				}
-				
-				var path = null;
-				if (t != null) path = registerMacroType(t, expr.pos);
-				
-				if (localVars.has(n)) res;
-				else if (typeDesc.svars.has(n))
-					macro getProperty($typeCall, $v { n } );
-				else if (typeDesc.vars.has(n))
-					macro getProperty(this, $v{n});
-				else if (t != null) {
-					var e = path.split(".").toFieldExpr();
-					macro $e;
-				} else res;
-				
-			case EBinop(OpAssign, e1, e2):
-				
-				getSetter(processExpr(e1), processExpr(e2));
-				
-			case ENew(t, params):  // в конструкторах тоже найдем тип для регистрации
-				
-				params = [for (p in params) processExpr(p)];
-				var res = { expr:ENew(t, params), pos:expr.pos };
-				
-				var t = Context.getType((t.pack.length > 0 ? t.pack.join(".") + "." : "") + t.name);
-				registerMacroType(t, expr.pos);
-				res;
-				
-			case EField(e, field):
-				//trace(expr);
-				var t = null;
-				try {
-					t = Context.typeof(e);
-				} catch (e:Dynamic) { }
-				if (t == null) {
+					
+				case ECall( { expr:EField(e, field) }, params): // если вызов haxe.Log.clear() то надо зарегистрировать тип haxe.Log
+					
+					
+					params = [for (p in params) processExpr(p)];
+					
+					var t = null;
 					try {
-						var s = e.toString();
-						if (s.length > 0) s += ".";
-						t = Context.getType(s + field);
-					} catch (e:Dynamic) {}
-				}
-				if (t != null) registerMacroType(t, expr.pos);
-				e = processExpr(e);
-				macro getProperty($e, $v{field} );
-				
-				
-			case _: 
-				expr.map(processExpr);
+						t = Context.typeof(e);
+					} catch (e:Dynamic) { }
+					if (t == null) {
+						try {
+							var s = e.toString();
+							if (s.length > 0) s += ".";
+							t = Context.getType(s + field);
+						} catch (e:Dynamic) {}
+					}
+					e = processExpr(e);
+					
+					if (t != null) {
+						var path = registerMacroType(t, expr.pos);
+						if (path != null) e = path.split(".").toFieldExpr();
+					}
+					
+					macro callField($e, $v { field }, $a { params } );
+					
+				case EConst(CIdent(n)):  // если идентификатор принадлежит классу, то добавим this
+					
+					var res = expr;
+					var t = null;
+					try {
+						t = Context.getType(n);
+					} catch (e:Dynamic) { }
+					if (t == null) {
+						try {
+							t = Context.typeof(expr);
+						}
+						catch (e:Dynamic) { }
+					}
+					
+					var path = null;
+					if (t != null) path = registerMacroType(t, expr.pos);
+					
+					if (localVars.has(n)) res;
+					else if (typeDesc.svars.has(n))
+						macro getProperty($typeCall, $v { n } );
+					else if (typeDesc.vars.has(n))
+						macro getProperty(this, $v{n});
+					else if (t != null) {
+						var e = path.split(".").toFieldExpr();
+						macro $e;
+					} else res;
+					
+				case EBinop(OpAssign, e1, e2):
+					
+					getSetter(processExpr(e1), processExpr(e2));
+					
+				case ENew(t, params):  // в конструкторах тоже найдем тип для регистрации
+					
+					params = [for (p in params) processExpr(p)];
+					var res = { expr:ENew(t, params), pos:expr.pos };
+					
+					var t = Context.getType((t.pack.length > 0 ? t.pack.join(".") + "." : "") + t.name);
+					registerMacroType(t, expr.pos);
+					res;
+					
+				case EField(e, field):
+					//trace(expr);
+					var t = null;
+					try {
+						t = Context.typeof(e);
+					} catch (e:Dynamic) { }
+					if (t == null) {
+						try {
+							var s = e.toString();
+							if (s.length > 0) s += ".";
+							t = Context.getType(s + field);
+						} catch (e:Dynamic) {}
+					}
+					if (t != null) registerMacroType(t, expr.pos);
+					e = processExpr(e);
+					macro getProperty($e, $v{field} );
+					
+					
+				case _: 
+					expr.map(processExpr);
+			}
 		}
-	}
-	
-	inline static function getSetter(expr:Expr, value:Expr):Expr
-	{
-		return switch (expr.expr)
-		{
-			case ECall(e, params):
-				switch (e.expr) {
-					case EConst(CIdent("getProperty")):
-						var p1 = params[0];
-						var p2 = params[1];
-						macro setProperty($p1, $p2, $value);
-					case _ : macro $expr = $value;
-				}
-			case EField(e, field):
-				macro setProperty($e, $v{field}, $value);
-			case _:
-				macro $expr = $value;
-				//expr.map(processExpr);
-		}
+		
+		return processExpr(expr);
 	}
 	
 	static function registerMacroType(t:Type, pos:Position):String {

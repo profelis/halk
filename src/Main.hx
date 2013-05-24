@@ -33,9 +33,14 @@ class Main extends Sprite implements ILive
 		//trace([x, y]);
 		{
 			var x = 10;
+			
+			{
+				var x = 20;
+				trace(x);
+			}
 			trace(x);
 		}
-		//trace(x);
+		trace(x);
 	}
 	
 	@live function update(_)

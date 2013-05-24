@@ -27,17 +27,23 @@ class Main extends Sprite implements ILive
 		flash.Lib.current.addChild(sprite);
 
 		sprite.addEventListener(flash.events.Event.ENTER_FRAME, update);
-		
-		new A();
+	}
+	
+	@liveUpdate function ttt() {
+		//trace([x, y]);
 	}
 	
 	@live function update(_)
 	{
-		var t = 10 * 10;
-		//Log.clear();
+		
+		//[for(i in 0...10) i];
+		//haxe.Log.trace(10);
+		//Log.trace(11);
+		
 		//trace("1");
+		var t = 10 * 15;
 		var s = this.sprite;
-		s.x += 3;
+		s.x += 15;
 		s.y += 4;
 		if (s.x > sprite.stage.stageWidth) s.x = -t;
 		if (s.y > sprite.stage.stageHeight) s.y = -t;
@@ -49,19 +55,24 @@ class Main extends Sprite implements ILive
 	}
 }
 
+enum A {
+	B;
+	C;
+}
+
 class Brick extends Sprite implements ILive {
 	
 	public function new() {
 		super();
 	}
 	@liveUpdate public function draw() {
-		trace("start");
-		
-		var t = 10 * 10;
-		
-		var gfx = this.graphics;
+		trace("draw");
+		//
+		var t = 10 * 15;
+		//
+		var gfx = graphics;
 		gfx.clear();
-		gfx.beginFill(0xFF6600);
+		gfx.beginFill(0xFF0000);
 		gfx.drawRect(0, 0, t, t);
 	}
 }

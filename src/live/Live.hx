@@ -93,10 +93,13 @@ import hscript.Interp;
 			var program = parser.parseString(script);
 			nmethods = interp.execute(program);
 		}
-		catch (e:Dynamic) { trace(e); }
+		catch (e:Dynamic) { 
+			trace("hscript: Error in live code");
+			trace(e);
+		}
 		
 		if (nmethods != null) {
-			var types:Array<String> = Reflect.field(nmethods, "__types__");
+			var types:Array<String> = Reflect.field(nmethods, "___types___");
 			//trace(types);
 			var ok = true;
 			if (types != null) {
@@ -110,7 +113,7 @@ import hscript.Interp;
 					
 					if (ref == null) {
 						ok = false;
-						trace("can't find type: '" + n + "'");
+						trace("can't find type in app: '" + n + "'");
 					}
 					else {
 						var arr = n.split(".");
@@ -140,8 +143,6 @@ import hscript.Interp;
 				methods = nmethods;
 				for (l in listeners) l();
 			}
-		} else {
-			trace("hscript: Error in live code. Please report");
 		}
 	}
 	

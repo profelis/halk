@@ -55,9 +55,6 @@ class Macro
 		if (types.length > 0) script += ",\n__types__:[\"" + types.join("\", \"") + "\"]";
 		script += "}";
 		sys.io.File.saveContent(getOutPath(), script);
-		
-		//if (types.length > 0) varTypes = new Map();
-		//methods = [];
 	}
 	
 	// удалим старую вару url и сделаем новую, с нашим путем
@@ -79,6 +76,8 @@ class Macro
 			firstBuild = false;
 			Context.onMacroContextReused(function() {
 				inited = false;
+				if (varTypes.keys().hasNext()) varTypes = new Map();
+				methods = [];
 				return true;
 			});
 		}
@@ -102,9 +101,11 @@ class Macro
 		
 		var ctor = null;
 		var liveListeners = [];
+		var firstField:Field = null;
 		
 		for (field in fields)
 		{
+			if (firstField == null) firstField = field;
 			if (field.name == "new") ctor = field;
 			if (field.meta.exists(function(m) return m.name=="live" || m.name=="liveUpdate"))
 			{
@@ -112,14 +113,16 @@ class Macro
 				{
 					case FFun(f):
 						var name = prefix + field.name;
-						var args = f.args.map(function(a){ return a.name; }).join(",");
+						var args = f.args.map(function(a) { return a.name; } ).join(",");
+						var method = f.expr;
 						var expr = f.expr.map(processExpr);
 						var body = expr.toString();
 						//trace(body);
 						
 						methods.push('$name:function($args)$body');
 						var args = f.args.map(function (a) return macro $v{a.value});
-						f.expr = macro live.Live.instance.call(this, $v{name}, $v{args});
+						f.expr = macro { live.Live.instance.call(this, $v { name }, $v { args } ); return; $method; };
+						//f.expr = macro live.Live.instance.call(this, $v { name }, $v { args } );
 					case _:
 				}
 			} 
@@ -133,12 +136,10 @@ class Macro
 			}
 		}
 		
-		if (ctor == null && liveListeners.length > 0) { // если нет конструктора, сделаем его
-			// TODO: test
-			ctor = { name:"new", pos:Context.currentPos(), access:[APublic],
-				kind:FFun( { args:[], ret:null, expr:null, params:[] } ) };
-				
-			fields.push(ctor);
+		if (ctor == null && liveListeners.length > 0) {
+			// если нет конструктора, то заставим программиста его сделать самому
+			// не самое красивое решение, но проще, чем самому его генерировать
+			Context.error("Please, define constructor here", firstField.pos);
 		}
 		
 		if (liveListeners.length > 0) {

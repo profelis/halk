@@ -258,13 +258,18 @@ class Macro
 	
 	static function processExpr(expr:Expr):Expr
 	{
-		//trace(expr);
+		trace(expr);
 		//trace(expr.toString());
 		//trace(expr.toString());
 		return switch (expr.expr)
 		{
-			case ESwitch(_, _, _):
-				Context.error("Live doesn't support: '" + expr.toString() + "'", expr.pos);
+			case ESwitch(_, _, _), EFunction(_, _):
+				var s = expr.toString();
+				var a = s.split("\n");
+				if (a.length > 1) s = a[0] + "...";
+				else if (s.length > 20) s = s.substr(0, 20) + "...";
+				
+				Context.error("Live doesn't support: " + s, expr.pos);
 			
 			case  EArrayDecl(t):
 				if (t.length > 0) {
@@ -277,6 +282,9 @@ class Macro
 				t = [for (e in t) processExpr(e) ];
 				macro $a { t };
 			
+			case ECast(e, t):
+				e;
+				
 			case EVars(vars):
 				
 				if (vars.length > 1) Context.error("Live doesn't support multiple vars on one line", expr.pos);
@@ -306,17 +314,20 @@ class Macro
 				
 			case ECall( { expr:EConst(CIdent(name)) }, params): // если идентификатор класса, то добавляем this
 				
-				
-				if (typeDesc.smethods.has(name)) {
-					params = [for (p in params) processExpr(p)];
-					macro callField($typeCall, $v { name }, $a { params }  );
-				} else if (typeDesc.methods.has(name)) {
-					params = [for (p in params) processExpr(p)];
-					macro callField(this, $v{name}, $a { params } );
+				if (name == "$type") processExpr(params[0]);
+				else {
+					if (typeDesc.smethods.has(name)) {
+						params = [for (p in params) processExpr(p)];
+						macro callField($typeCall, $v { name }, $a { params }  );
+					} else if (typeDesc.methods.has(name)) {
+						params = [for (p in params) processExpr(p)];
+						macro callField(this, $v{name}, $a { params } );
+					}
+					else expr.map(processExpr);
 				}
-				else expr.map(processExpr);
 				
 			case ECall( { expr:EField(e, field) }, params): // если вызов haxe.Log.clear() то надо зарегистрировать тип haxe.Log
+				
 				
 				params = [for (p in params) processExpr(p)];
 				

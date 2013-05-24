@@ -4,6 +4,7 @@ package live;
 import haxe.macro.Context;
 #end
 
+import haxe.Timer;
 import hscript.Parser;
 import hscript.Interp;
 
@@ -24,6 +25,8 @@ import hscript.Interp;
 	function new()
 	{
 		parser = new Parser();
+		//parser.allowTypes = true;
+		parser.allowJSON = true;
 		interp = new Interp();
 		methods = { };
 		listeners = [];
@@ -40,6 +43,7 @@ import hscript.Interp;
 		#end
 	}
 	
+	// TODO: отказаться в пользу таймера
 	var counter = 0;
 	function update(_)
 	{
@@ -61,7 +65,7 @@ import hscript.Interp;
 		
 		#else
 		
-		url += "?r="+Math.round(Math.random()*10000000);
+		url += "?r="+ (Timer.stamp() * 10e6);
 
 		var http = new haxe.Http(url);
 		http.onData = function(data) {
@@ -89,7 +93,7 @@ import hscript.Interp;
 			var program = parser.parseString(script);
 			nmethods = interp.execute(program);
 		}
-		catch (e:Dynamic) { }
+		catch (e:Dynamic) { trace(e); }
 		
 		if (nmethods != null) {
 			var types:Array<String> = Reflect.field(nmethods, "__types__");
@@ -99,23 +103,45 @@ import hscript.Interp;
 				var i = 0;
 				while (i < types.length) {
 					var n = types[i++];
-					var cn = types[i++];
 					var ref = null;
 					try {
-						ref = Type.resolveClass(cn);
+						ref = Type.resolveClass(n);
 					} catch (e:Dynamic) { }
 					
 					if (ref == null) {
 						ok = false;
-						trace("can't find type: '" + cn + "'");
+						trace("can't find type: '" + n + "'");
 					}
-					else interp.variables.set(n, ref);
+					else {
+						var arr = n.split(".");
+						if (arr.length == 1) interp.variables.set(n, ref);
+						else {
+							var res:Dynamic;
+							var root = arr.shift();
+							var last = arr.pop();
+							if (interp.variables.exists(root)) {
+								res = interp.variables.get(root);
+							} else {
+								interp.variables.set(root, res = { } );
+							}
+							for (s in arr) {
+								if (Reflect.hasField(res, s))
+									res = Reflect.field(res, s);
+								else 
+									Reflect.setField(res, s, res = { } );
+							}
+							Reflect.setField(res, last, ref);
+						}
+					}
 				}
 			}
+			
 			if (ok) {
 				methods = nmethods;
 				for (l in listeners) l();
 			}
+		} else {
+			trace("hscript: Error in live code. Please report");
 		}
 	}
 	

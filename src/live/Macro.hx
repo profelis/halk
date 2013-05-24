@@ -18,13 +18,46 @@ class Macro
 	
 	static var classFields:Array<String>;
 	static var classMethods:Array<String>;
-	static var varTypes:Map < String, String > = new Map();
+	static var staticFields:Array<String>;
+	static var varTypes:Map < String, Bool > = new Map();
 	
 	static var inited:Null<Bool> = null;
 	
-	inline static function registerType(n, m) {
-		//trace("register: " + n + " " + m);
-		varTypes[n] = m;
+	static function registerMacroType(t:Type):String {
+		trace(t);
+		t = Context.follow(t, false);
+		trace(t);
+		return switch (t) {
+			case TType(t, params):
+				
+				var t = t.get();
+				var n = t.name;
+				registerType(n, t.module);
+				//{expr:EField(macro $i { n }, field), pos:expr.pos };
+				//expr;
+				
+			case TInst(t, _):
+				
+				var t = t.get();
+				var n = t.name;
+				registerType(n, t.module);
+				//macro $i { n };
+				//expr;
+				//null;
+			case TAnonymous(_):
+			case _:
+				throw "Unknown: " + t + ". Please report problem";
+		}
+	}
+	
+	inline static function registerType(n:String, m:String):String {
+		if (StringTools.startsWith(n, "#")) n = n.substr(1);
+		// соберем правильное имя, зная имя класса и модуль
+		n = if (m.indexOf(".") != -1) m.substr(0, m.lastIndexOf(".") + 1) + n;
+			else n;
+		trace("register: " + n + " " + m);
+		varTypes[n] = true;
+		return n;
 	}
 	
 	// один и тотже путь для скрипта в Live и тут, чтобы не думать куда его ложить
@@ -39,25 +72,21 @@ class Macro
 	}
 	
 	// раз за компиляцию создадим фаил со всем скриптами из всех классов
-	static function init(_) {
+	static function onGenerate(types:Array<Type>) {
 		
 		//trace("inited: " + methods.length + " inited: " + inited);
 		if (inited) return;
 		inited = true;
 		
-		var types = [];
-		for (n in varTypes.keys()) {
-			types.push(n);
-			types.push(varTypes[n]);
-		}
-		
 		var script = "{" + methods.join(",\n");
-		if (types.length > 0) script += ",\n__types__:[\"" + types.join("\", \"") + "\"]";
-		script += "}";
+		if (varTypes.keys().hasNext()) 
+			script += ",\n__types__:[\"" + [for (n in varTypes.keys()) n].join("\", \"") + "\"]";
+		script += "\n}";
+		
 		sys.io.File.saveContent(getOutPath(), script);
 	}
 	
-	// удалим старую вару url и сделаем новую, с нашим путем
+	// удалим старую url и сделаем новую, с нашим путем
 	public static function buildLive() {
 		var res = Context.getBuildFields();
 		for (f in res) if (f.name == "url") { res.remove(f); break; }
@@ -71,7 +100,7 @@ class Macro
 	public static function build()
 	{
 		//trace("build");
-		Context.onGenerate(init);
+		Context.onGenerate(onGenerate);
 		if( firstBuild ) {
 			firstBuild = false;
 			Context.onMacroContextReused(function() {
@@ -85,17 +114,25 @@ class Macro
 		
 		classFields = [];
 		classMethods = [];
+		staticFields = [];
 		
 		for (f in fields) {
 			switch (f.kind) {
-				case FProp(_, _, _, _), FVar(_, _): classFields.push(f.name);
-				case FFun(_): classMethods.push(f.name);
+				case FProp(_, _, _, _), FVar(_, _):
+					if (f.access.has(AStatic))
+						staticFields.push(f.name);
+					else
+						classFields.push(f.name);
+				case FFun(_):
+					if (f.access.has(AStatic))
+						staticFields.push(f.name);
+					else
+						classMethods.push(f.name);
 			}
 		}
 		classMethods.remove("new");
 		
 		var type = Context.getLocalClass().get();
-		//trace(type);
 		var prefix = type.module.split(".").join("_") + "_" + type.name + "_";
 
 		
@@ -156,7 +193,7 @@ class Macro
 					else e = macro { $e; $add; };
 					
 					ctor.kind = FFun( { args:args, ret:ret, expr:e, params:params } ); 
-				case _:
+				case _: throw "ctor != FFun %(";
 			}
 		}
 		
@@ -169,6 +206,21 @@ class Macro
 		//trace(expr.toString());
 		return switch (expr.expr)
 		{
+			case EVars(vars):
+				for (v in vars) {
+					if (v.type != null) {
+						switch (v.type) {
+							
+							case TPath(p):
+								var t = Context.getType((p.pack.length > 0 ? p.pack + "." : "") + p.name);
+								registerMacroType(t);
+							case _:
+						}
+					}
+					v.type = null;
+				}	
+				expr;
+				
 			case EBinop(OpAssignOp(op), e1, e2):  // разворачиваем a+=1 в a=a+1
 				e1 = processExpr(e1);
 				e2 = processExpr(e2);
@@ -178,6 +230,8 @@ class Macro
 				
 			case ECall( { expr:EConst(CIdent(name)) }, params): // если идентификатор класса, то добавляем this
 				
+				//trace(macro this.$name);
+				//trace(Context.typeof(expr));
 				if (classMethods.has(name)) {
 					params = params.map(function (p) return processExpr(p));
 					macro callField(this, $v{name}, $a { params } );
@@ -197,28 +251,13 @@ class Macro
 						t = Context.getType(e.toString() + "." + field);
 					} catch (e:Dynamic) {}
 				}
+				e = processExpr(e);
+				
 				if (t != null) {
-					switch (t) {
-						case TType(t, params):
-							
-							var t = t.get();
-							var n = t.name;
-							if (StringTools.startsWith(n, "#")) n = n.substr(1);
-							registerType(n, t.module);
-							
-						case TInst(t, _):
-							
-							var t = t.get();
-							var n = t.name;
-							if (StringTools.startsWith(n, "#")) n = n.substr(1);
-							registerType(n, t.module);
-						
-						case _:
-							throw "unknown: " + t;
-					}
+					var path = registerMacroType(t);
+					if (path != null) e = path.split(".").toFieldExpr();
 				}
 				
-				e = processExpr(e);
 				macro callField($e, $v { field }, $a { params } );
 				
 			case EConst(CIdent(n)):  // если идентификатор принадлежит классу, то добавим this
@@ -227,15 +266,8 @@ class Macro
 				try {
 					t = Context.getType(n);
 				} catch (e:Dynamic) { }
-				if (t != null)
-					switch (t) {
-						case TInst(t, _):
-							var t = t.get();
-							registerType(t.name, t.module);
-							
-						case _:
-							throw "Unknown: " + t;
-					}
+				
+				if (t != null) registerMacroType(t);
 				
 				if (classFields.has(n))
 					macro getProperty(this, $v{n});
@@ -251,19 +283,11 @@ class Macro
 				var res = { expr:ENew(t, params), pos:expr.pos };
 				
 				var t = Context.getType((t.pack.length > 0 ? t.pack.join(".") + "." : "") + t.name);
-				switch (t) {
-					case TInst(t, _):
-						var t = t.get();
-						registerType(t.name, t.module);
-						
-					case _:
-						throw "Unknown: " + t;
-						res;
-				}
+				registerMacroType(t);
 				res;
 				
 			case EField(e, field):
-				
+				//trace(expr);
 				var t = null;
 				try {
 					t = Context.typeof(e);
@@ -273,32 +297,9 @@ class Macro
 						t = Context.getType(e.toString() + "." + field);
 					} catch (e:Dynamic) {}
 				}
-				if (t != null) {
-					switch (t) {
-						case TType(t, params):
-							
-							var t = t.get();
-							var n = t.name;
-							if (StringTools.startsWith(n, "#")) n = n.substr(1);
-							registerType(n, t.module);
-							{expr:EField(macro $i { n }, field), pos:expr.pos };
-							
-						case TInst(t, _):
-							
-							var t = t.get();
-							var n = t.name;
-							if (StringTools.startsWith(n, "#")) n = n.substr(1);
-							registerType(n, t.module);
-							macro $i { n };
-						
-						case _:
-							throw "assert";
-					}
-				}
-				else {
-					e = processExpr(e);
-					macro getProperty($e, $v{field} );
-				}
+				if (t != null) registerMacroType(t);
+				e = processExpr(e);
+				macro getProperty($e, $v{field} );
 				
 				
 			case _: 

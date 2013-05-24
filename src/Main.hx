@@ -1,4 +1,5 @@
 import flash.display.Sprite;
+import flash.events.IEventDispatcher;
 import haxe.Log;
 import live.ILive;
 
@@ -10,7 +11,7 @@ import live.ILive;
  *  - не поддерживаются поля из родительских классов (планирую сделать)
  *  - статичные поля не обрабатываются (+ к проблеме выше)
  */
-class Main implements ILive
+class Main extends Sprite implements ILive
 {
 	static function main() new Main();
 
@@ -18,6 +19,7 @@ class Main implements ILive
 
 	function new()
 	{
+		super();
 		flash.Lib.current.stage.frameRate = 60;
 		flash.Lib.current.stage.scaleMode = flash.display.StageScaleMode.NO_SCALE;
 
@@ -40,7 +42,7 @@ class Main implements ILive
 		if (s.x > sprite.stage.stageWidth) s.x = -t;
 		if (s.y > sprite.stage.stageHeight) s.y = -t;
 		
-		
+		//Log.clear();
 		//callMethod(this, this.draw, [0xFF]);
 		//this.sprite.x = this.sprite.x - 1;
 		//if (this.sprite.x < 0) this.sprite.x = 400;
@@ -53,10 +55,14 @@ class Brick extends Sprite implements ILive {
 		super();
 	}
 	@liveUpdate public function draw() {
+		trace("start");
+		
 		var t = 10 * 10;
+		
 		var gfx = this.graphics;
 		gfx.clear();
-		gfx.beginFill(0x00FF00);
+		gfx.beginFill(0xFF6600);
 		gfx.drawRect(0, 0, t, t);
 	}
 }
+

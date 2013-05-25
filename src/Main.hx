@@ -2,7 +2,7 @@ import flash.display.Sprite;
 import flash.events.IEventDispatcher;
 import haxe.ds.ObjectMap;
 import haxe.Log;
-import live.ILive;
+import halk.ILive;
 
 /**
  * Haxe 3 requered

@@ -1,4 +1,4 @@
-package live;
+package halk;
 
 import haxe.io.Path;
 import haxe.macro.Compiler;
@@ -203,7 +203,7 @@ class Macro
 						});
 						var args = [for (a in f.args) macro $v { a.value } ];
 						var m = f.expr;
-						f.expr = macro { live.Live.instance.call(this, $v { name }, $v { args } ); return; $m; };
+						f.expr = macro { halk.Live.instance.call(this, $v { name }, $v { args } ); return; $m; };
 							//f.expr = macro live.Live.instance.call(this, $v { name }, $v { args } );
 							
 					case _: 
@@ -234,7 +234,7 @@ class Macro
 				case FFun( f ):
 					
 					// добавим подписку на обновление в тело конструктора
-					var listeners = [for (l in liveListeners) macro live.Live.instance.addListener($i { l } )];
+					var listeners = [for (l in liveListeners) macro halk.Live.instance.addListener($i { l } )];
 					
 					var add = { pos:ctor.pos, expr:EBlock(listeners)};
 					

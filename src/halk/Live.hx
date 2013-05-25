@@ -1,14 +1,11 @@
-package live;
-
-#if macro
-import haxe.macro.Context;
-#end
+package halk;
 
 import haxe.Timer;
 import hscript.Parser;
 import hscript.Interp;
 
-@:build(live.Macro.buildLive()) class Live
+@:build(halk.Macro.buildLive()) 
+class Live
 {
 	
 	var parser:Parser;
@@ -36,33 +33,27 @@ import hscript.Interp;
 		interp.variables.set("getProperty", Reflect.getProperty);
 		interp.variables.set("setProperty", Reflect.setProperty);
 
-		load();
-
-		#if sys
-		flash.Lib.current.addEventListener(flash.events.Event.ENTER_FRAME, update);
-		#end
-	}
-	
-	// TODO: отказаться в пользу таймера
-	var counter = 0;
-	function update(_)
-	{
-		counter++;
-		if (counter > 30)
-		{
-			counter = 0;
-			load();
-		}
+		delayed(load, 500);
 	}
 	
 	var url = "script.hs";
+	
+	#if sys
+	function delayed(f:Dynamic, time) {
+		#if neko neko.vm.Thread #else cpp.vm.Thread #end
+		.create(function() {
+		Sys.sleep(time / 1000);
+			f();
+		});
+	}
+	#end
 
 	function load()
 	{
 		#if sys
 		var data = sys.io.File.getContent(url);
 		parse(data);
-		
+		delayed(load, 500);
 		#else
 		
 		url += "?r="+ (Timer.stamp() * 10e6);
@@ -158,6 +149,11 @@ import hscript.Interp;
 		if (Reflect.field(methods, method) == null) return;
 		
 		interp.variables.set("this", instance);
-		Reflect.callMethod(instance, Reflect.field(methods, method), args);
+		try {
+			Reflect.callMethod(instance, Reflect.field(methods, method), args);
+		} catch (e:Dynamic) {
+			trace("hscript: execute error");
+			trace(e);
+		}
 	}
 }

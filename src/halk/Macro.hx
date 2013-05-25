@@ -21,6 +21,23 @@ private typedef TypeDesc = {
 
 private typedef MethodData = {name:String, args:String, method:Expr}
 
+/**
+ * Haxe 3 requered
+ * 
+ * Что не работает:
+ *  - enum-ы
+ *  - switch
+ *  - function внутри другой функции
+ *  - определение массива вида [for(a in 0...10) a]
+ *  - определение карты вида [for(a in 0...10) a=>a*a]
+ *  - определение нескольких переменных в одной строке (TODO)
+ *  - function.bind
+ *  
+ * Важно:
+ *  - cast(a, Type) заменяются на if(Std.is(a, Type)) a; else throw "can't cast 'a' to 'Type'";
+ *  - a += 10 заменяются на a = a + 10; аналогично для *=, /= и т.д.
+ *  - $type(a) заменяются на a, компилятор как и раньше покажет тип переменной
+ */
 class Macro
 {
 	static var methods:Map<String, Array<MethodData>> = new Map();
@@ -279,10 +296,10 @@ class Macro
 					if (t.length > 0) {
 						switch (t[0].expr) {
 							case EFor(_, _), EWhile(_, _, _):
-								Context.error("Live doesn't support Array comprehensions", expr.pos);
+								Context.error("Live doesn't support complex Array definition", expr.pos);
 								
 							case EBinop(OpArrow, _, _):
-								Context.error("Live doesn't support Map", expr.pos);
+								Context.error("Live doesn't support inline Map definition", expr.pos);
 							case _:
 						}
 					}
@@ -356,6 +373,15 @@ class Macro
 					try {
 						t = Context.typeof(e);
 					} catch (e:Dynamic) { }
+					
+					if (t != null && field == "bind") {
+						switch (t) {
+							case TFun(_, _):
+								Context.error("Live doesn't support function bind", expr.pos);
+							case _:
+						}
+					}
+					
 					if (t == null) {
 						try {
 							var s = e.toString();
@@ -393,7 +419,7 @@ class Macro
 						macro getProperty(this, $v{n});
 					else if (typeDesc.svars.has(n))
 						macro getProperty($typeCall, $v { n } );
-					else if (t != null) {
+					else if (path != null) {
 						var e = path.split(".").toFieldExpr();
 						macro $e;
 					} else expr;

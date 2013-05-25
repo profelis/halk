@@ -4,21 +4,6 @@ import haxe.ds.ObjectMap;
 import haxe.Log;
 import halk.ILive;
 
-/**
- * Haxe 3 requered
- * 
- * Что не работает:
- *  - enum-ы
- *  - switch
- *  - function внутри другой функции
- *  - массивы вида [for(a in 0...10) a]
- *  - определение нескольких переменных в одной строке (TODO)
- *  
- * Важно:
- *  - cast(a, Type) заменяются на if(Std.is(a, Type)) a; else throw "can't cast 'a' to 'Type'";
- *  - a += 10 заменяются на a = a + 10;
- *  - $type(a) заменяются на a
- */
 class Main extends Sprite implements ILive
 {
 	static function main() new Main();

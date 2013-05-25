@@ -37,29 +37,33 @@ class Main extends Sprite implements ILive
 	}
 	
 	@liveUpdate function ttt() {
-		//trace([x, y]);
-		/*{
+		trace([x, this.y]);
+		{
 			var x = 10;
 			
 			{
 				var x = 20;
 				trace(x);
+				trace(this.x);
 			}
 			trace(x);
 		}
-		trace(x);*/
+		trace(x);
 		
 		var s2 = new flash.display.Sprite();
 		trace(s2);
+		
+		Brick.a = 12;
+		trace(Brick.a);
 	}
 	
 	@live function update(_)
 	{
-		//var a = cast(this, Float);
+		var a = cast(this, IEventDispatcher);
 		//[for(i in 0...10) i];
-		//haxe.Log.trace(10);
+		
 		//Log.trace(11);
-		/*
+		
 		//trace("1");
 		var t = 10 * 15;
 		var s = this.sprite;
@@ -67,7 +71,7 @@ class Main extends Sprite implements ILive
 		s.y += 4;
 		if (s.x > sprite.stage.stageWidth) s.x = -t;
 		if (s.y > sprite.stage.stageHeight) s.y = -t;
-		*/
+		
 		
 		//Log.clear();
 		//callMethod(this, this.draw, [0xFF]);
@@ -83,18 +87,19 @@ enum A {
 
 class Brick extends Sprite implements ILive {
 	
+	static public var a = 10;
 	public function new() {
 		super();
 	}
 	@liveUpdate public function draw() {
-		/*trace("draw");
+		trace("draw");
 		//
 		var t = 10 * 15;
 		//
 		var gfx = graphics;
 		gfx.clear();
 		gfx.beginFill(0xFF0000);
-		gfx.drawRect(0, 0, t, t);*/
+		gfx.drawRect(0, 0, t, t);
 	}
 }
 

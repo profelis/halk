@@ -258,7 +258,6 @@ class Macro
 		var localVars:Array<String> = vars;
 		//trace(expr);
 		//trace(expr.toString());
-		//trace(expr.toString());
 		function getSetter(expr:Expr, value:Expr):Expr
 		{
 			return switch (expr.expr)
@@ -317,6 +316,7 @@ class Macro
 							tn = type.toString();
 							var e = processExpr(e);
 							var msg = "can't cast '" + e.toString() + "' to '" + tn + "'";
+							registerType("Std", []);
 							macro if (Std.is($e, $i { tn } )) $e; else throw $v { msg };
 							
 						case _:
@@ -365,7 +365,6 @@ class Macro
 					}
 					
 				case ECall( { expr:EField(e, field) }, params): // если вызов haxe.Log.clear() то надо зарегистрировать тип haxe.Log
-					
 					
 					params = [for (p in params) processExpr(p)];
 					
@@ -474,6 +473,7 @@ class Macro
 				var t = t.get();
 				registerType(t.name, t.pack);
 				//macro $i { n };
+				
 			case TAnonymous(_):
 				null;
 				

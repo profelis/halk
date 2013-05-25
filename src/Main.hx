@@ -1,5 +1,6 @@
 import flash.display.Sprite;
 import flash.events.IEventDispatcher;
+import haxe.ds.ObjectMap;
 import haxe.Log;
 import live.ILive;
 
@@ -55,16 +56,18 @@ class Main extends Sprite implements ILive
 		
 		Brick.a = 12;
 		trace(Brick.a);
+		
+		new Sprite();
+		new flash.display.Sprite();
 	}
 	
 	@live function update(_)
 	{
-		var a = cast(this, IEventDispatcher);
 		//[for(i in 0...10) i];
 		
 		//Log.trace(11);
+		var a = new Array();
 		
-		//trace("1");
 		var t = 10 * 15;
 		var s = this.sprite;
 		s.x += 15;
@@ -93,9 +96,9 @@ class Brick extends Sprite implements ILive {
 	}
 	@liveUpdate public function draw() {
 		trace("draw");
-		//
+		
 		var t = 10 * 15;
-		//
+		
 		var gfx = graphics;
 		gfx.clear();
 		gfx.beginFill(0xFF0000);

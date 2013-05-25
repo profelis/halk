@@ -22,9 +22,11 @@ Main_Main_ttt:function(){
 	trace(s2);
 	setProperty(Brick,"a",12);
 	trace(getProperty(Brick,"a"));
+	new flash.display.Sprite();
+	new flash.display.Sprite();
 },
 Main_Main_update:function(_){
-	var a=if(Std.is(this,flash.events.IEventDispatcher)) this else throw "can't cast 'this' to 'flash.events.IEventDispatcher'";
+	var a=new Array();
 	var t=10*15;
 	var s=getProperty(this,"sprite");
 	setProperty(s,"x",getProperty(s,"x")+15);
@@ -32,5 +34,5 @@ Main_Main_update:function(_){
 	if(getProperty(s,"x")>getProperty(getProperty(getProperty(this,"sprite"),"stage"),"stageWidth")) setProperty(s,"x",-t) ;
 	if(getProperty(s,"y")>getProperty(getProperty(getProperty(this,"sprite"),"stage"),"stageHeight")) setProperty(s,"y",-t) ;
 },
-___types___:["Brick", "Main", "flash.events.IEventDispatcher", "Std", "flash.display.Sprite"]
+___types___:["Brick", "Main", "Array", "flash.display.Sprite"]
 }

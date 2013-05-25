@@ -258,25 +258,6 @@ class Macro
 		var localVars:Array<String> = vars;
 		//trace(expr);
 		//trace(expr.toString());
-		function getSetter(expr:Expr, value:Expr):Expr
-		{
-			return switch (expr.expr)
-			{
-				case ECall(e, params):
-					switch (e.expr) {
-						case EConst(CIdent("getProperty")):
-							var p1 = params[0];
-							var p2 = params[1];
-							macro setProperty($p1, $p2, $value);
-						case _ : macro $expr = $value;
-					}
-				case EField(e, field):
-					macro setProperty($e, $v{field}, $value);
-				case _:
-					macro $expr = $value;
-					//expr.map(processExpr);
-			}
-		}
 		
 		function processExpr(expr:Expr) {
 			//trace(expr);
@@ -299,6 +280,9 @@ class Macro
 						switch (t[0].expr) {
 							case EFor(_, _), EWhile(_, _, _):
 								Context.error("Live doesn't support Array comprehensions", expr.pos);
+								
+							case EBinop(OpArrow, _, _):
+								Context.error("Live doesn't support Map", expr.pos);
 							case _:
 						}
 					}
@@ -354,12 +338,12 @@ class Macro
 					
 					if (name == "$type") processExpr(params[0]);
 					else {
-						if (typeDesc.smethods.has(name)) {
-							params = [for (p in params) processExpr(p)];
-							macro callField($typeCall, $v { name }, $a { params }  );
-						} else if (typeDesc.methods.has(name)) {
+						if (typeDesc.methods.has(name)) {
 							params = [for (p in params) processExpr(p)];
 							macro callField(this, $v{name}, $a { params } );
+						} else if (typeDesc.smethods.has(name)) {
+							params = [for (p in params) processExpr(p)];
+							macro callField($typeCall, $v { name }, $a { params }  );
 						}
 						else expr.map(processExpr);
 					}
@@ -390,7 +374,6 @@ class Macro
 					
 				case EConst(CIdent(n)):  // если идентификатор принадлежит классу, то добавим this
 					
-					var res = expr;
 					var t = null;
 					try {
 						t = Context.getType(n);
@@ -405,30 +388,48 @@ class Macro
 					var path = null;
 					if (t != null) path = registerMacroType(t, expr.pos);
 					
-					if (localVars.has(n)) res;
-					else if (typeDesc.svars.has(n))
-						macro getProperty($typeCall, $v { n } );
+					if (localVars.has(n)) expr;
 					else if (typeDesc.vars.has(n))
 						macro getProperty(this, $v{n});
+					else if (typeDesc.svars.has(n))
+						macro getProperty($typeCall, $v { n } );
 					else if (t != null) {
 						var e = path.split(".").toFieldExpr();
 						macro $e;
-					} else res;
+					} else expr;
 					
 				case EBinop(OpAssign, e1, e2):
 					
-					getSetter(processExpr(e1), processExpr(e2));
+					var expr = processExpr(e1);
+					var value = processExpr(e2);
 					
+					switch (expr.expr)
+					{
+						case ECall(e, params):
+							switch (e.expr) {
+								case EConst(CIdent("getProperty")):
+									var p1 = params[0];
+									var p2 = params[1];
+									macro setProperty($p1, $p2, $value);
+								case _ : macro $expr = $value;
+							}
+						case EField(e, field):
+							macro setProperty($e, $v{field}, $value);
+						case _:
+							macro $expr = $value;
+							//expr.map(processExpr);
+					}
+				
 				case ENew(t, params):  // в конструкторах тоже найдем тип для регистрации
 					
-					params = [for (p in params) processExpr(p)];
-					var res = { expr:ENew(t, params), pos:expr.pos };
+					if (t.params.length > 0) Context.error("Live doesn't support type params", expr.pos);
 					
 					var type = Context.getType((t.pack.length > 0 ? t.pack.join(".") + "." : "") + t.name);
 					registerMacroType(type, expr.pos);
 					var tn = type.toString();
 					var pack = tn.split(".");
 					pack.pop();
+					
 					{expr:ENew( { name:t.name, pack:pack, params:t.params, sub:t.sub }, params), pos:expr.pos };
 					
 				case EField(e, field):
@@ -462,7 +463,7 @@ class Macro
 		t = Context.follow(t, false);
 		//trace(t);
 		return switch (t) {
-			case TType(t, params):
+			case TType(t, _):
 				
 				var t = t.get();
 				registerType(t.name, t.pack);
@@ -474,20 +475,26 @@ class Macro
 				registerType(t.name, t.pack);
 				//macro $i { n };
 				
-			case TAnonymous(_):
+			case TMono(t):
+				var t = t.get();
+				if (t != null) registerMacroType(t, pos);
 				null;
 				
 			case TAbstract(t, _):
+				
 				var t = t.get();
 				if (t != null) registerType(t.name, t.pack);
 				null;
 				
+			case TDynamic(t):
+				if (t != null) registerMacroType(t, pos);
+				null;
+				
 			case TEnum(t, _):
-				
 				Context.error("Live doesn't support enums", pos);
-				//var t = t.get();
-				//registerType(t.name, t.pack);
 				
+			case TAnonymous(_), TFun(_, _): null;
+			
 			case _:
 				throw "Unknown type: " + t + ". Please report to author";
 		}

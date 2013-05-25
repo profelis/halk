@@ -280,6 +280,7 @@ class Macro
 		}
 		
 		function processExpr(expr:Expr) {
+			//trace(expr);
 			return switch (expr.expr)
 			{
 				case EBlock(exprs):
@@ -306,7 +307,21 @@ class Macro
 					macro $a { t };
 				
 				case ECast(e, t):
-					processExpr(e);
+					
+					switch (t) {
+						case TPath(t):
+							var tn = (t.pack.length > 0 ? t.pack.join(".") + "." : "") + t.name;
+							var type = Context.getType(tn);
+							registerMacroType(type, expr.pos);
+							
+							tn = type.toString();
+							var e = processExpr(e);
+							var msg = "can't cast '" + e.toString() + "' to '" + tn + "'";
+							macro if (Std.is($e, $i { tn } )) $e; else throw $v { msg };
+							
+						case _:
+							expr;
+					}
 					
 				case EVars(vars):
 					
@@ -410,9 +425,12 @@ class Macro
 					params = [for (p in params) processExpr(p)];
 					var res = { expr:ENew(t, params), pos:expr.pos };
 					
-					var t = Context.getType((t.pack.length > 0 ? t.pack.join(".") + "." : "") + t.name);
-					registerMacroType(t, expr.pos);
-					res;
+					var type = Context.getType((t.pack.length > 0 ? t.pack.join(".") + "." : "") + t.name);
+					registerMacroType(type, expr.pos);
+					var tn = type.toString();
+					var pack = tn.split(".");
+					pack.pop();
+					{expr:ENew( { name:t.name, pack:pack, params:t.params, sub:t.sub }, params), pos:expr.pos };
 					
 				case EField(e, field):
 					//trace(expr);
@@ -457,7 +475,12 @@ class Macro
 				registerType(t.name, t.pack);
 				//macro $i { n };
 			case TAnonymous(_):
-			case TAbstract(_):
+				null;
+				
+			case TAbstract(t, _):
+				var t = t.get();
+				if (t != null) registerType(t.name, t.pack);
+				null;
 				
 			case TEnum(t, _):
 				

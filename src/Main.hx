@@ -7,9 +7,16 @@ import live.ILive;
  * Haxe 3 requered
  * 
  * Что не работает:
- *  - енумы можно объявлять только с именем класса EnumName.EnumCtor (так и будет скорее всего)
- *  - не поддерживаются поля из родительских классов (планирую сделать)
- *  - статичные поля не обрабатываются (+ к проблеме выше)
+ *  - enum-ы
+ *  - switch
+ *  - function внутри другой функции
+ *  - массивы вида [for(a in 0...10) a]
+ *  - определение нескольких переменных в одной строке (TODO)
+ *  
+ * Важно:
+ *  - cast(a, Type) заменяются на if(Std.is(a, Type)) a; else throw "can't cast 'a' to 'Type'";
+ *  - a += 10 заменяются на a = a + 10;
+ *  - $type(a) заменяются на a
  */
 class Main extends Sprite implements ILive
 {
@@ -31,7 +38,7 @@ class Main extends Sprite implements ILive
 	
 	@liveUpdate function ttt() {
 		//trace([x, y]);
-		{
+		/*{
 			var x = 10;
 			
 			{
@@ -40,12 +47,15 @@ class Main extends Sprite implements ILive
 			}
 			trace(x);
 		}
-		trace(x);
+		trace(x);*/
+		
+		var s2 = new flash.display.Sprite();
+		trace(s2);
 	}
 	
 	@live function update(_)
 	{
-		
+		//var a = cast(this, Float);
 		//[for(i in 0...10) i];
 		//haxe.Log.trace(10);
 		//Log.trace(11);

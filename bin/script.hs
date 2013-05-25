@@ -1,13 +1,6 @@
 {Main_Main_ttt:function(){
-	{
-		var x=10;
-		{
-			var x=20;
-			trace(x);
-		};
-		trace(x);
-	};
-	trace(getProperty(this,"x"));
+	var s2=new flash.display.Sprite();
+	trace(s2);
 },
-___types___:["Brick", "Main"]
+___types___:["Brick", "Main", "flash.display.Sprite"]
 }

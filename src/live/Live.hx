@@ -35,6 +35,7 @@ import hscript.Interp;
 		interp.variables.set("callMethod", Reflect.callMethod);
 		interp.variables.set("getProperty", Reflect.getProperty);
 		interp.variables.set("setProperty", Reflect.setProperty);
+		interp.variables.set("Std", Std);
 
 		load();
 

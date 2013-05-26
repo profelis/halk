@@ -1,0 +1,12 @@
+-cp bin/flash/haxe
+-cp src
+-cp game
+-cp samples/game
+-lib hscript
+-swf bin/haxelive.swf
+-swf-header 800:600:30:FFFFFF
+--flash-strict
+-swf-version 11
+-main Game
+-dce no
+-D halk

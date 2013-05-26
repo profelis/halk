@@ -29,13 +29,13 @@ private typedef MethodData = {name:String, args:String, method:Expr}
  *  - switch
  *  - function declaration inside another function
  *  - array comprehension
- *  - one-line multiple variables declaration (TODO)
  *  - function.bind
  *
  * Important:
  *  - "cast(a, Type)" is replaced with "if(Std.is(a, Type)) a; else throw "can't cast 'a' to 'Type'";
  *  - "a += 10" is replaced with "a = a + 10;" (same thing for "*=", "/=" etc.)
  *  - $type(a) is replaced with "a", but compiller still shows variable type
+ *  - var a = 1, b = 2; is replaced with var a = 1; var b = 2;
  */
 class Macro
 {
@@ -208,6 +208,7 @@ class Macro
 					case FFun(f):
 
 						if (field.access.has(AStatic)) Context.error("static method can't be live", f.expr.pos);
+						if (f.expr == null) continue;
 						switch (f.expr.expr) {
 							case EBlock(exprs): if (exprs.length == 0) continue;
 							case _:
@@ -220,8 +221,7 @@ class Macro
 							method : f.expr,
 						});
 						var args = [for (a in f.args) macro $v { a.value } ];
-						var m = f.expr;
-						f.expr = macro { halk.Live.instance.call(this, $v { name }, $v { args } ); return; $m; };
+						f.expr = macro { halk.Live.instance.call(this, $v { name }, $v { args } ); return; ${f.expr}; };
 							//f.expr = macro live.Live.instance.call(this, $v { name }, $v { args } );
 
 					case _:
@@ -252,9 +252,8 @@ class Macro
 
 					// listeners for live methods' changes to be added to constructor code
 					var listeners = [for (l in liveListeners) macro halk.Live.instance.addListener($i { l } )];
-
-					var add = { pos:ctor.pos, expr:EBlock(listeners)};
-
+					var add = macro $b { listeners };
+					
 					if (f.expr == null) f.expr = add;
 					else {
 						var m = f.expr;
@@ -265,11 +264,9 @@ class Macro
 
 					var removeListeners = [for (l in liveListeners) macro halk.Live.instance.removeListener($i { l } )];
 
-					var remove = { pos:ctor.pos, expr:EBlock(removeListeners)};
-
 					// removeLiveListeners method
 					fields.push( { name:"removeLiveListeners", access:[APublic], pos:ctor.pos,
-						kind:FFun( { args:[], ret:null, expr:remove, params:[] } )
+						kind:FFun( { args:[], ret:null, expr:macro $b { removeListeners }, params:[] } )
 					});
 				case _:
 			}
@@ -278,11 +275,11 @@ class Macro
 		return fields;
 	}
 
-	static function process(expr:Expr, vars:Array<String>):Expr
+	static function process(expr:Expr, vars:Array<String>, ?block:Array<Expr>):Expr
 	{
 
 		var localVars:Array<String> = vars;
-		//trace(expr);
+		//trace(block);
 		//trace(expr.toString());
 
 		function processExpr(expr:Expr) {
@@ -291,7 +288,9 @@ class Macro
 			{
 				case EBlock(exprs):
 					var vars = localVars.copy();
-					return {expr:EBlock([for (e in exprs) process(e, vars)]), pos:expr.pos};
+					var res = [];
+					for (e in exprs) res.push(process(e, vars, res));
+					return {expr:EBlock(res), pos:expr.pos};
 
 				case ESwitch(_, _, _), EFunction(_, _):
 					var s = expr.toString();
@@ -324,7 +323,7 @@ class Macro
 							registerMacroType(type, expr.pos);
 
 							tn = type.toString();
-							var e = processExpr(e);
+							e = processExpr(e);
 							var msg = "can't cast '" + e.toString() + "' to '" + tn + "'";
 							registerType("Std", []);
 							macro if (Std.is($e, $i { tn } )) $e; else throw $v { msg };
@@ -335,7 +334,8 @@ class Macro
 
 				case EVars(vars):
 
-					if (vars.length > 1) Context.error("Live doesn't support multiple vars on one line", expr.pos);
+					if (vars.length > 1 && block == null) Context.error("Live doesn't support multiple vars on one line", expr.pos);
+					var i = 0;
 					for (v in vars) {
 						localVars.push(v.name);
 						if (v.type != null) {
@@ -349,8 +349,15 @@ class Macro
 						}
 						v.expr = v.expr != null ? processExpr(v.expr) : v.expr;
 						v.type = null;
+						
+						i++;
+						if (i > 1) {
+							block.unshift( { expr:EVars([v]), pos:expr.pos } );
+						}
 					}
-					expr;
+					if (i > 1)
+						{expr:EVars([vars[0]]), pos:expr.pos };
+					else expr;
 
 
 				case EBinop(OpAssignOp(op), e1, e2):  // translate a+=1 to a=a+1
@@ -429,8 +436,7 @@ class Macro
 					else if (typeDesc.svars.has(n))
 						macro getProperty($typeCall, $v { n } );
 					else if (path != null) {
-						var e = path.split(".").toFieldExpr();
-						macro $e;
+						macro $p{path.split(".")};
 					} else expr;
 
 				case EBinop(OpAssign, e1, e2):

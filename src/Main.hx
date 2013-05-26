@@ -22,8 +22,11 @@ class Main extends Sprite implements ILive
 		sprite.addEventListener(flash.events.Event.ENTER_FRAME, update);
 	}
 	
+	
 	@liveUpdate function ttt() {
+		
 		trace([x, this.y]);
+		var y = 20, x = 10;
 		{
 			var x = 10;
 			

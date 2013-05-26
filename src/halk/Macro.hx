@@ -267,6 +267,7 @@ class Macro
 					
 					var remove = { pos:ctor.pos, expr:EBlock(removeListeners)};
 					
+					// и сделаем метод removeLiveListeners для удаления подписок
 					fields.push( { name:"removeLiveListers", access:[APublic], pos:ctor.pos,
 						kind:FFun( { args:[], ret:null, expr:remove, params:[] } )
 					});

@@ -455,6 +455,14 @@ class Macro
 							//expr.map(processExpr);
 					}
 				
+				case EBinop(op, e1, e2):
+					e1 = processExpr(e1);
+					e2 = processExpr(e2);
+					e1 = { expr:EParenthesis(e1), pos:e1.pos }; // fix Printer
+					e2 = { expr:EParenthesis(e2), pos:e2.pos };
+					
+					{expr:EBinop(op, e1, e2), pos:expr.pos };
+				
 				case ENew(t, params):  // в конструкторах тоже найдем тип для регистрации
 					
 					if (t.params.length > 0) Context.error("Live doesn't support type params", expr.pos);
@@ -518,7 +526,8 @@ class Macro
 			case TAbstract(t, _):
 				
 				var t = t.get();
-				if (t != null) registerType(t.name, t.pack);
+				trace(t);
+				if (t != null) registerMacroType(t.type, pos);
 				null;
 				
 			case TDynamic(t):

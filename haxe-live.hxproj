@@ -25,7 +25,7 @@
   <build>
     <option directives="HXCPP_DEBUG_LINK&#xA;DHXCPP_STACK_TRACE&#xA;HXCPP_STACK_LINE&#xA;HXCPP_CHECK_POINTER&#xA;HXCPP_DEBUGGER&#xA;nme_install_tool&#xA;web" />
     <option flashStrict="True" />
-    <option mainClass="Game" />
+    <option mainClass="Main" />
     <option enabledebug="True" />
     <option additional="-dce no" />
   </build>
@@ -35,7 +35,7 @@
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
-    <compile path="game\Game.hx" />
+    <compile path="src\Main.hx" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

@@ -37,13 +37,13 @@ class Ball extends Sprite implements ILive {
 		
 		var gfx = graphics;
 		gfx.clear();
-		gfx.lineStyle(4, 0x000000);
-		gfx.beginFill(0xFF0000);
+		gfx.lineStyle(3, 0xFFFFFF * Math.random());
+		gfx.beginFill(Std.int(0xFFFFFF * Math.random()));
 		gfx.drawCircle(0, 0, size = 20 + Math.random() * 20);
 		
 		var level = game.level;
-		vy = Math.random() * level + 1;
-		vx = (Math.random() - 0.5) * level * 3;
+		vy = Math.random() * level + 1.5;
+		vx = (Math.random() - 0.5) * 15;
 	}
 	
 	public var vx:Float = 0;

@@ -45,7 +45,7 @@ class Game extends Sprite implements ILive {
 	}
 	
 	@liveUpdate public function init() {
-		level = 3;
+		level = 4;
 	}
 	
 	function render(_) {

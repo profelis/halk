@@ -16,6 +16,7 @@ class Live
 	static public var instance(default, null):Live = new Live();
 	
 	static function callField(d:Dynamic, n:String, args:Array<Dynamic>) {
+		#if flash9 if (d == Std && n == "int") n = "_int"; #end
 		return Reflect.callMethod(d, Reflect.getProperty(d, n), args);
 	}
 	
@@ -86,14 +87,14 @@ class Live
 		// trace("parse: " + data);
 		
 		var nmethods = null;
-		try {
+		#if !debug try { #end
 			var program = parser.parseString(script);
 			nmethods = interp.execute(program);
-		}
+		#if !debug }
 		catch (e:Dynamic) { 
 			trace("hscript: Error in live code");
 			trace(e);
-		}
+		}#end
 		
 		if (nmethods != null) {
 			var types:Array<String> = Reflect.field(nmethods, "___types___");
@@ -159,11 +160,12 @@ class Live
 		if (Reflect.field(methods, method) == null) return;
 		
 		interp.variables.set("this", instance);
-		try {
+		#if !debug try { #end
 			Reflect.callMethod(instance, Reflect.field(methods, method), args);
-		} catch (e:Dynamic) {
+		#if !debug } catch (e:Dynamic) {
 			trace("hscript: execute error");
 			trace(e);
 		}
+		#end
 	}
 }

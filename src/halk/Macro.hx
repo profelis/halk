@@ -35,7 +35,7 @@ private typedef MethodData = {name:String, args:String, method:Expr}
  *  - "cast(a, Type)" is replaced with "if(Std.is(a, Type)) a; else throw "can't cast 'a' to 'Type'";
  *  - "a += 10" is replaced with "a = a + 10;" (same thing for "*=", "/=" etc.)
  *  - $type(a) is replaced with "a", but compiller still shows variable type
- *  - var a = 1, b = 2; is replaced with var a = 1; var b = 2;
+ *  - var a = 1, b = 2; is replaced with var b = 2; var a = 1;
  */
 class Macro
 {
@@ -352,7 +352,7 @@ class Macro
 						
 						i++;
 						if (i > 1) {
-							block.unshift( { expr:EVars([v]), pos:expr.pos } );
+							block.push( { expr:EVars([v]), pos:expr.pos } );
 						}
 					}
 					if (i > 1)

@@ -3,23 +3,25 @@ import flash.display.Sprite;
 import flash.display.Stage;
 import flash.events.Event;
 import flash.events.MouseEvent;
+import halk.ILive;
 
 /**
  * ...
  * @author deep <system.grand@gmail.com>
  */
-class Ball extends Sprite {
+class Ball extends Sprite implements ILive {
 
 	var game:Game;
+	
 	function new(game) {
 		
 		super();
-		
 		this.game = game;
-		x = game.stage.stageWidth * Math.random();
-		y = game.stage.stageHeight;
+		
 		init();
-		draw();
+		x = game.stage.stageWidth * Math.random();
+		y = game.stage.stageHeight + height;
+		
 		useHandCursor = true;
 		buttonMode = true;
 		addEventListener(MouseEvent.CLICK, onClick);
@@ -29,26 +31,31 @@ class Ball extends Sprite {
 		onKill(this, false);
 	}
 	
-	function init() {
-		var level = game.level;
-		vy = Math.random() * level;
-		vx = (Math.random() - 0.5) * level * 0.1;
-	}
+	public var size:Float;
 	
-	public function draw() {
+	@liveUpdate function init() {
+		
 		var gfx = graphics;
 		gfx.clear();
-		gfx.lineStyle(0, 0x000000);
+		gfx.lineStyle(4, 0x000000);
 		gfx.beginFill(0xFF0000);
-		gfx.drawCircle(0, 0, 10 + Math.random() * 20);
+		gfx.drawCircle(0, 0, size = 20 + Math.random() * 20);
+		
+		var level = game.level;
+		vy = Math.random() * level + 1;
+		vx = (Math.random() - 0.5) * level * 3;
 	}
 	
-	var vx:Float;
-	var vy:Float;
+	public var vx:Float = 0;
+	public var vy:Float = 0;
 	
-	public function update() {
+	@live public function update() {
 		x += vx;
 		y -= vy;
+		if (x < 0 || x > stage.stageWidth) {
+			vx = -vx * 0.9;
+			x += vx * 2;
+		}
 		
 		if (y < -100) {
 			onKill(this, true);
@@ -57,6 +64,7 @@ class Ball extends Sprite {
 	
 	public function destroy() {
 		game = null;
+		removeLiveListers();
 	}
 	
 	public dynamic function onKill(ball:Ball, self:Bool):Void {}

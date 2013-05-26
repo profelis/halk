@@ -262,6 +262,14 @@ class Macro
 					}
 					
 					ctor.kind = FFun( f ); 
+					
+					var removeListeners = [for (l in liveListeners) macro halk.Live.instance.removeListener($i { l } )];
+					
+					var remove = { pos:ctor.pos, expr:EBlock(removeListeners)};
+					
+					fields.push( { name:"removeLiveListers", access:[APublic], pos:ctor.pos,
+						kind:FFun( { args:[], ret:null, expr:remove, params:[] } )
+					});
 				case _:
 			}
 		}

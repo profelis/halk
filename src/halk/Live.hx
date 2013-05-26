@@ -19,6 +19,11 @@ class Live
 		return Reflect.callMethod(d, Reflect.getProperty(d, n), args);
 	}
 	
+	static function setProperty(d:Dynamic, n:String, v:Dynamic) {
+		Reflect.setProperty(d, n, v);
+		return v;
+	}
+	
 	function new()
 	{
 		parser = new Parser();
@@ -31,7 +36,7 @@ class Live
 		interp.variables.set("callField", Live.callField);
 		interp.variables.set("callMethod", Reflect.callMethod);
 		interp.variables.set("getProperty", Reflect.getProperty);
-		interp.variables.set("setProperty", Reflect.setProperty);
+		interp.variables.set("setProperty", setProperty);
 
 		#if sys delayed(load, 500); #else
 		load(); #end
@@ -143,6 +148,10 @@ class Live
 	public function addListener(f:Dynamic) {
 		listeners.remove(f);
 		listeners.push(f);
+	}
+	
+	public function removeListener(f:Dynamic) {
+		listeners.remove(f);
 	}
 
 	public function call(instance:Dynamic, method:String, args:Array<Dynamic>)

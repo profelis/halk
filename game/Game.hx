@@ -1,17 +1,24 @@
 package ;
 import flash.display.Sprite;
+import flash.display.StageAlign;
+import flash.display.StageScaleMode;
 import flash.events.Event;
 import flash.Lib;
+import flash.text.TextField;
+import flash.text.TextFieldAutoSize;
+import flash.text.TextFormat;
+import halk.ILive;
 
 /**
  * ...
  * @author deep <system.grand@gmail.com>
  */
-class Game extends Sprite {
+class Game extends Sprite implements ILive {
 
 	public var level:Int = 1;
 	
 	var points:Int = 0;
+	var pointsLabel:TextField;
 	
 	var balls:Array<Ball>;
 	
@@ -19,6 +26,13 @@ class Game extends Sprite {
 		
 		super();
 		stage.addChild(this);
+		stage.scaleMode = StageScaleMode.NO_SCALE;
+		stage.align = StageAlign.TOP_LEFT;
+		
+		addChild(pointsLabel = new TextField());
+		pointsLabel.autoSize = TextFieldAutoSize.LEFT;
+		pointsLabel.defaultTextFormat = new TextFormat("serif", 20);
+		updatePointsLabel();
 		
 		balls = [];
 		init();
@@ -26,17 +40,23 @@ class Game extends Sprite {
 		addEventListener(Event.ENTER_FRAME, render);
 	}
 	
-	public function init() {
+	function updatePointsLabel() {
+		pointsLabel.text = 'Points: $points';
+	}
+	
+	@liveUpdate public function init() {
 		level = 3;
 	}
 	
 	function render(_) {
 		
-		if (balls.length < level * 10) {
-			for (i in balls.length...level * 10) {
+		var num = level * 3;
+		if (balls.length < num) {
+			for (i in balls.length...num) {
+				if (Math.random() < 0.95) continue;
 				var b = new Ball(this);
-				addChild(b);
 				b.onKill = onKillBall;
+				addChild(b);
 				balls.push(b);
 			}
 		}
@@ -49,12 +69,10 @@ class Game extends Sprite {
 		b.destroy();
 		removeChild(b);
 		if (!self) {
-			points ++;
-			trace('Points: $points');
+			points += Std.int(100 / b.size * b.vy);
+			updatePointsLabel();
 		}
 	}
-	
-	
 	
 	static function main() {
 		

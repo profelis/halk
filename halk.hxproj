@@ -18,16 +18,16 @@
   <classpaths>
     <class path="bin\flash\haxe" />
     <class path="src" />
-    <class path="C:\Motion-Twin\Haxe\lib\hscript\2,0" />
     <class path="game" />
+    <class path="samples\game" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="HXCPP_DEBUG_LINK&#xA;DHXCPP_STACK_TRACE&#xA;HXCPP_STACK_LINE&#xA;HXCPP_CHECK_POINTER&#xA;HXCPP_DEBUGGER&#xA;nme_install_tool&#xA;web" />
+    <option directives="" />
     <option flashStrict="True" />
-    <option mainClass="Main" />
+    <option mainClass="Game" />
     <option enabledebug="True" />
-    <option additional="-dce no" />
+    <option additional="-dce no&#xA;-D halk" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
@@ -35,7 +35,8 @@
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
-    <compile path="src\Main.hx" />
+    <compile path="game\Game.hx" />
+    <compile path="samples\game\Game.hx" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

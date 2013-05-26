@@ -169,7 +169,9 @@ class Macro
 
 	public static function build()
 	{
+		if (!Context.defined("halk")) return Context.getBuildFields();
 		//trace("build");
+		
 		Context.onGenerate(onGenerate);
 		if ( firstBuild ) {
 			firstBuild = false;
@@ -524,7 +526,6 @@ class Macro
 			case TAbstract(t, _):
 
 				var t = t.get();
-				trace(t);
 				if (t != null) registerMacroType(t.type, pos);
 				null;
 

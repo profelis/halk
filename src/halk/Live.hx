@@ -33,7 +33,8 @@ class Live
 		interp.variables.set("getProperty", Reflect.getProperty);
 		interp.variables.set("setProperty", Reflect.setProperty);
 
-		delayed(load, 500);
+		#if sys delayed(load, 500); #else
+		load(); #end
 	}
 	
 	var url = "script.hs";

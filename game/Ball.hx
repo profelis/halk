@@ -2,6 +2,7 @@ package ;
 import flash.display.Sprite;
 import flash.display.Stage;
 import flash.events.Event;
+import flash.events.MouseEvent;
 
 /**
  * ...
@@ -9,18 +10,27 @@ import flash.events.Event;
  */
 class Ball extends Sprite {
 
-	function new() {
+	var game:Game;
+	function new(game) {
 		
+		super();
+		
+		this.game = game;
+		x = game.stage.stageWidth * Math.random();
+		y = game.stage.stageHeight;
 		init();
 		draw();
-		
-		addEventListener(Event.ENTER_FRAME, update);
+		useHandCursor = true;
+		buttonMode = true;
+		addEventListener(MouseEvent.CLICK, onClick);
 	}
 	
-	var level = 3;
+	function onClick(_) {
+		onKill(this, false);
+	}
 	
 	function init() {
-		level = 4;
+		var level = game.level;
 		vy = Math.random() * level;
 		vx = (Math.random() - 0.5) * level * 0.1;
 	}
@@ -28,32 +38,27 @@ class Ball extends Sprite {
 	public function draw() {
 		var gfx = graphics;
 		gfx.clear();
-		gfx.lineStyle();
+		gfx.lineStyle(0, 0x000000);
 		gfx.beginFill(0xFF0000);
-		gfx.drawCircle(0, 0, 50 + Math.random() * 50);
+		gfx.drawCircle(0, 0, 10 + Math.random() * 20);
 	}
 	
 	var vx:Float;
 	var vy:Float;
 	
-	public function update(_) {
+	public function update() {
 		x += vx;
 		y -= vy;
 		
 		if (y < -100) {
-			kill();
+			onKill(this, true);
 		}
 	}
 	
-	function kill() {
-		parent.removeChild(this);
-		removeEventListener(Event.ENTER_FRAME, update);
+	public function destroy() {
+		game = null;
 	}
 	
-	static public function build(stage:Stage):Ball {
-		var b = new Ball();
-		b.x = stage.stageWidth * Math.random();
-		b.y = stage.stageHeight;
-	}
+	public dynamic function onKill(ball:Ball, self:Bool):Void {}
 	
 }

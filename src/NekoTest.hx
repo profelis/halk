@@ -1,9 +1,11 @@
 package ;
 
 import halk.ILive;
+
+#if neko
 import neko.vm.Thread;
 import sys.FileSystem;
-
+#end
 /**
  * ...
  * @author deep <system.grand@gmail.com>
@@ -13,7 +15,7 @@ class NekoTest implements ILive
 
 	public function new() {
 	}
-	
+	#if neko
 	static function sub() {
 		new NekoTest();
 	}
@@ -33,5 +35,5 @@ class NekoTest implements ILive
 		for (f in FileSystem.readDirectory(".")) 
 			trace(f);
 	}
-	
+	#end
 }

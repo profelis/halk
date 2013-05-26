@@ -268,7 +268,7 @@ class Macro
 					var remove = { pos:ctor.pos, expr:EBlock(removeListeners)};
 
 					// removeLiveListeners method
-					fields.push( { name:"removeLiveListers", access:[APublic], pos:ctor.pos,
+					fields.push( { name:"removeLiveListeners", access:[APublic], pos:ctor.pos,
 						kind:FFun( { args:[], ret:null, expr:remove, params:[] } )
 					});
 				case _:

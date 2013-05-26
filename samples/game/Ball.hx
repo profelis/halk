@@ -64,7 +64,7 @@ class Ball extends Sprite implements ILive {
 	
 	public function destroy() {
 		game = null;
-		#if halk removeLiveListers(); #end
+		#if halk removeLiveListeners(); #end
 	}
 	
 	public dynamic function onKill(ball:Ball, self:Bool):Void {}

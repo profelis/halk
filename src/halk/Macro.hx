@@ -275,7 +275,7 @@ class Macro
 		return fields;
 	}
 
-	static function process(expr:Expr, vars:Array<String>, ?block:Array<Expr>):Expr
+	static function process(expr:Expr, vars:Array<String>, ?aVars:Array<Expr>):Expr
 	{
 
 		var localVars:Array<String> = vars;
@@ -289,7 +289,11 @@ class Macro
 				case EBlock(exprs):
 					var vars = localVars.copy();
 					var res = [];
-					for (e in exprs) res.push(process(e, vars, res));
+					for (e in exprs) {
+						var addVars = [];
+						res.push(process(e, vars, addVars));
+						if (addVars.length > 0) res = res.concat(addVars);
+					}
 					return {expr:EBlock(res), pos:expr.pos};
 
 				case ESwitch(_, _, _), EFunction(_, _):
@@ -334,7 +338,7 @@ class Macro
 
 				case EVars(vars):
 
-					if (vars.length > 1 && block == null) Context.error("Live doesn't support multiple vars on one line", expr.pos);
+					if (vars.length > 1 && aVars == null) Context.error("Live doesn't support multiple vars on one line", expr.pos);
 					var i = 0;
 					for (v in vars) {
 						localVars.push(v.name);
@@ -352,7 +356,7 @@ class Macro
 						
 						i++;
 						if (i > 1) {
-							block.push( { expr:EVars([v]), pos:expr.pos } );
+							aVars.push({ expr:EVars([v]), pos:expr.pos } );
 						}
 					}
 					if (i > 1)
@@ -464,8 +468,10 @@ class Macro
 				case EBinop(op, e1, e2):
 					e1 = processExpr(e1);
 					e2 = processExpr(e2);
-					e1 = { expr:EParenthesis(e1), pos:e1.pos }; // Printer temp fix
-					e2 = { expr:EParenthesis(e2), pos:e2.pos };
+					if (StringTools.startsWith(e2.toString(), "-")) {
+						// Printer temp fix
+						e2 = { expr:EParenthesis(e2), pos:e2.pos };
+					}
 					
 					{expr:EBinop(op, e1, e2), pos:expr.pos };
 				

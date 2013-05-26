@@ -26,7 +26,7 @@ class Main extends Sprite implements ILive
 	@liveUpdate function ttt() {
 		
 		trace([x, this.y]);
-		var y = 20, x = 10;
+		var x = 10, y = 20, z = x + y;
 		{
 			var x = 10;
 			

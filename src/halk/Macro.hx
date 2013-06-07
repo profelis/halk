@@ -59,7 +59,7 @@ class Macro
 
 		var t = new Path(p.dir);
 		if (t.file == "obj") p = new Path(t.dir + "/bin/t");
-
+		
 		return p.dir + "/script.hs";
 	}
 

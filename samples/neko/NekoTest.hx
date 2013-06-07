@@ -2,10 +2,9 @@ package ;
 
 import halk.ILive;
 
-#if neko
 import neko.vm.Thread;
 import sys.FileSystem;
-#end
+
 /**
  * ...
  * @author deep <system.grand@gmail.com>
@@ -15,7 +14,7 @@ class NekoTest implements ILive
 
 	public function new() {
 	}
-	#if neko
+
 	static function sub() {
 		new NekoTest();
 	}
@@ -31,9 +30,10 @@ class NekoTest implements ILive
 	
 	@liveUpdate function live():Void {
 		trace("");
-		trace("");
-		for (f in FileSystem.readDirectory(".")) 
+		//trace(Sys.getCwd());
+		//trace(FileSystem.fullPath("."));
+		for (f in FileSystem.readDirectory("../src/halk")) 
 			trace(f);
 	}
-	#end
+
 }

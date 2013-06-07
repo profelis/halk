@@ -4,32 +4,32 @@
   <output>
     <movie outputType="Application" />
     <movie input="" />
-    <movie path="bin\halk.swf" />
+    <movie path="bin\halk.n" />
     <movie fps="30" />
     <movie width="800" />
     <movie height="600" />
-    <movie version="11" />
+    <movie version="1" />
     <movie minorVersion="0" />
-    <movie platform="Flash Player" />
+    <movie platform="Neko" />
     <movie background="#FFFFFF" />
     <movie preferredSDK="Haxe 3.0.0;3.0.0;" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
     <class path="Source" />
-    <class path="C:\HaxeToolkit\lib/openfl/1,0,0-rc,3/" />
     <class path="../src" />
     <class path="Export/flash/haxe" />
     <class path="src" />
     <class path="samples\game" />
+    <class path="samples\neko" />
   </classpaths>
   <!-- Build options -->
   <build>
     <option directives="tools=1&#xA;halk&#xA;openfl_ver=1.0.0-rc.3&#xA;openfl&#xA;web" />
     <option flashStrict="True" />
-    <option mainClass="Game" />
+    <option mainClass="NekoTest" />
     <option enabledebug="True" />
-    <option additional="--remap flash:flash&#xA;-dce no&#xA;--no-output&#xA;-swf-version 11&#xA;#--remap nme:flash" />
+    <option additional="--remap flash:flash&#xA;-dce no&#xA;-swf-version 11&#xA;#--remap nme:flash" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
@@ -41,12 +41,8 @@
   <compileTargets>
     <compile path="game\Game.hx" />
     <compile path="openfl\ActuateExample\Source\Main.hx" />
-    <compile path="samples\game\Game.hx" />
+    <compile path="samples\neko\NekoTest.hx" />
   </compileTargets>
-  <!-- Assets to embed into the output SWF -->
-  <library>
-    <!-- example: <asset path="..." id="..." update="..." glyphs="..." mode="..." place="..." sharepoint="..." /> -->
-  </library>
   <!-- Paths to exclude from the Project Explorer tree -->
   <hiddenPaths>
     <!-- example: <hidden path="..." /> -->

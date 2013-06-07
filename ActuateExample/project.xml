@@ -12,8 +12,8 @@
 	<haxelib name="hscript" />
 	<haxedef name="halk"/>
 	<haxeflag name="-dce" value="no" />
-	<haxeflag name="--no-output" />
 	<source path="../src" />
+	<!--<haxeflag name="--no-output" />-->
 	
 	<assets path="Assets" rename="assets" exclude="nme.svg" />
 	<icon path="Assets/nme.svg" />

@@ -39,6 +39,7 @@ private typedef MethodData = {name:String, args:String, method:Expr}
  */
 class Macro
 {
+
 	static var methods:Map<String, Array<MethodData>> = new Map();
 
 	static var typeDesc:TypeDesc;
@@ -52,11 +53,13 @@ class Macro
 	// the same path for Live and here, so i don't need to think where to place it
 	// TODO: nme, mac need test
 	static function getOutPath() {
-		var path = Compiler.getOutput();
+		var path = FileSystem.fullPath(Compiler.getOutput());
 		var p = new Path(path);
-		if (FileSystem.isDirectory(p.dir)) return p.dir + "/script.hs";
+		if (!FileSystem.isDirectory(p.dir)) p = new Path(p.dir);
 
-		p = new Path(p.dir);
+		var t = new Path(p.dir);
+		if (t.file == "obj") p = new Path(t.dir + "/bin/t");
+
 		return p.dir + "/script.hs";
 	}
 
@@ -154,6 +157,10 @@ class Macro
 		File.saveContent(getOutPath(), script);
 	}
 
+	inline static function typeName(type:ClassType) {
+		return (type.module.length > 0 ? type.module + "." : "") + type.name;
+	}
+	
 	// remove previous url and create new one with our path.
 	public static function buildLive() {
 		var res = Context.getBuildFields();
@@ -161,10 +168,6 @@ class Macro
 
 		res.push( { kind:FVar(null, macro $v{getOutPath()}), name:"url", pos:Context.currentPos() }  );
 		return res;
-	}
-
-	inline static function typeName(type:ClassType) {
-		return (type.module.length > 0 ? type.module + "." : "") + type.name;
 	}
 
 	public static function build()
@@ -203,10 +206,11 @@ class Macro
 
 			if (field.meta.exists(function(m) return m.name=="live" || m.name=="liveUpdate"))
 			{
+				
 				switch (field.kind)
 				{
 					case FFun(f):
-
+						
 						if (field.access.has(AStatic)) Context.error("static method can't be live", f.expr.pos);
 						if (f.expr == null) continue;
 						switch (f.expr.expr) {
@@ -220,8 +224,8 @@ class Macro
 							args : [for (a in f.args) a.name].join(","),
 							method : f.expr,
 						});
-						var args = [for (a in f.args) macro $v { a.value } ];
-						f.expr = macro { halk.Live.instance.call(this, $v { name }, $v { args } ); return; ${f.expr}; };
+						var args = [for (a in f.args) macro $i { a.name } ];
+						f.expr = macro { halk.Live.instance.call(this, $v { name }, $a{args} ); return; ${f.expr}; };
 							//f.expr = macro live.Live.instance.call(this, $v { name }, $v { args } );
 
 					case _:
@@ -478,7 +482,7 @@ class Macro
 				case ENew(t, params):
 
 					if (t.params.length > 0) Context.error("Live doesn't support type params", expr.pos);
-
+					trace(t);
 					var type = Context.getType((t.pack.length > 0 ? t.pack.join(".") + "." : "") + t.name);
 					registerMacroType(type, expr.pos);
 					var tn = type.toString();
@@ -564,4 +568,5 @@ class Macro
 		varTypes[n] = true;
 		return n;
 	}
+
 }

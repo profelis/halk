@@ -4,7 +4,7 @@ import haxe.Timer;
 import hscript.Parser;
 import hscript.Interp;
 
-@:build(halk.Macro.buildLive()) 
+//@:build(halk.Macro.buildLive()) 
 class Live
 {
 	
@@ -16,7 +16,7 @@ class Live
 	static public var instance(default, null):Live = new Live();
 	
 	static function callField(d:Dynamic, n:String, args:Array<Dynamic>) {
-		#if flash9 if (d == Std && n == "int") n = "_int"; #end
+		#if (flash) if (d == Std && n == "int") n = "_int"; #end
 		return Reflect.callMethod(d, Reflect.getProperty(d, n), args);
 	}
 	

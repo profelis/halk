@@ -18,6 +18,7 @@ class Ball extends Sprite implements ILive {
 		super();
 		this.game = game;
 		
+		draw();
 		init();
 		x = game.stage.stageWidth * Math.random();
 		y = game.stage.stageHeight + height;
@@ -27,6 +28,14 @@ class Ball extends Sprite implements ILive {
 		addEventListener(MouseEvent.CLICK, onClick);
 	}
 	
+	@live function draw() {
+		var gfx = graphics;
+		gfx.clear();
+		gfx.lineStyle(5, 0xFFFFFF * Math.random());
+		gfx.beginFill(Std.int(0xFFFFFF * Math.random()));
+		gfx.drawCircle(0, 0, size = 20 + Math.random() * 20);
+	}
+	
 	function onClick(_) {
 		onKill(this, false);
 	}
@@ -34,12 +43,6 @@ class Ball extends Sprite implements ILive {
 	public var size:Float;
 	
 	@liveUpdate function init() {
-		
-		var gfx = graphics;
-		gfx.clear();
-		gfx.lineStyle(3, 0xFFFFFF * Math.random());
-		gfx.beginFill(Std.int(0xFFFFFF * Math.random()));
-		gfx.drawCircle(0, 0, size = 20 + Math.random() * 20);
 		
 		var level = game.level;
 		vy = Math.random() * level + 1.5;

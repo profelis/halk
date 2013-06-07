@@ -4,9 +4,9 @@ import haxe.ds.ObjectMap;
 import haxe.Log;
 import halk.ILive;
 
-class Main extends Sprite implements ILive
+class HalkMain extends Sprite implements ILive
 {
-	static function main() new Main();
+	static function main() new HalkMain();
 
 	public var sprite:Brick;
 

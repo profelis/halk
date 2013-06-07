@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="Actuate Example" package="org.openfl.samples.actuateexample" version="1.0.0" company="OpenFL" />
+	<app main="Main" path="Export" file="ActuateExample" />
+	
+	<source path="Source" />
+	
+	<haxelib name="openfl" />
+	<haxelib name="actuate" />
+	
+	<haxelib name="hscript" />
+	<haxedef name="halk"/>
+	<haxeflag name="-dce" value="no" />
+	<haxeflag name="--no-output" />
+	<source path="../src" />
+	
+	<assets path="Assets" rename="assets" exclude="nme.svg" />
+	<icon path="Assets/nme.svg" />
+	
+</project>

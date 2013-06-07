@@ -4,44 +4,35 @@
   <output>
     <movie outputType="Application" />
     <movie input="" />
-    <movie path="bin\halk.swf" />
+    <movie path="project.xml" />
     <movie fps="30" />
     <movie width="800" />
     <movie height="600" />
-    <movie version="11" />
+    <movie version="3" />
     <movie minorVersion="0" />
-    <movie platform="Flash Player" />
+    <movie platform="NME" />
     <movie background="#FFFFFF" />
-    <movie preferredSDK="Haxe 3.0.0;3.0.0;" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
     <class path="Source" />
-    <class path="C:\HaxeToolkit\lib/openfl/1,0,0-rc,3/" />
-    <class path="../src" />
-    <class path="Export/flash/haxe" />
-    <class path="src" />
-    <class path="samples\game" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="tools=1&#xA;halk&#xA;openfl_ver=1.0.0-rc.3&#xA;openfl&#xA;web" />
-    <option flashStrict="True" />
-    <option mainClass="Game" />
-    <option enabledebug="True" />
-    <option additional="--remap flash:flash&#xA;-dce no&#xA;--no-output&#xA;-swf-version 11&#xA;#--remap nme:flash" />
+    <option directives="" />
+    <option flashStrict="False" />
+    <option mainClass="io.nme.samples.actuateexample" />
+    <option enabledebug="False" />
+    <option additional="" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
-    <library name="openfl" />
+    <library name="nme" />
     <library name="actuate" />
-    <library name="hscript" />
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
-    <compile path="game\Game.hx" />
-    <compile path="openfl\ActuateExample\Source\Main.hx" />
-    <compile path="samples\game\Game.hx" />
+    <!-- example: <compile path="..." /> -->
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

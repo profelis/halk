@@ -1,12 +1,21 @@
--cp bin/flash/haxe
--cp src
--cp game
--cp samples/game
+-main ApplicationMain 
+-lib openfl
+-lib actuate
 -lib hscript
--swf bin/haxelive.swf
--swf-header 800:600:30:FFFFFF
---flash-strict
--swf-version 11
--main Game
--dce no
+-cp Source
+-cp C:\HaxeToolkit\lib/openfl/1,0,0-rc,3/
+-cp ../src
+-D tools=1
 -D halk
+-D openfl_ver=1.0.0-rc.3
+-D openfl
+-D web
+--remap flash:flash
+-dce no
+--no-output
+-swf-version 11
+-swf Export/flash/bin/ActuateExample.swf
+-swf-header 800:600:30:FFFFFF
+-cp Export/flash/haxe
+#--remap nme:flash
+

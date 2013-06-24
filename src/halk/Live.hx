@@ -63,9 +63,7 @@ class Live
 		delayed(load, 500);
 		#else
 		
-		url += "?r="+ (Timer.stamp() * 10e6);
-
-		var http = new haxe.Http(url);
+		var http = new haxe.Http(url + "?r="+ (Timer.stamp() * 10e6));
 		http.onData = function(data) {
 			parse(http.responseData);
 			haxe.Timer.delay(load, 500);
